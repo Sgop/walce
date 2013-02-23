@@ -127,7 +127,7 @@ static void sort_root_moves(void)
 static tentry_t* find_tentry(position_t* pos)
 {
     tentry_t* tte = TT_probe(pos->state->key);
-    if (tte && tte->move && position_move_is_pseudo(pos, tte->move))
+    if (tte && (!tte->move || position_move_is_pseudo(pos, tte->move)))
         return tte;
     return NULL;
 }
@@ -155,8 +155,10 @@ static int qsearch_do(
     int ttDepth;
     move_t move;
     move_pick_t picker;
-//    state_t* state = pos->state;
-//    int oldAlpha = alpha;
+#if DO_TT2
+    state_t* state = pos->state;
+    int oldAlpha = alpha;
+#endif
     move_t bestMove;
     int bestValue = -V_INF;
     
@@ -171,14 +173,16 @@ static int qsearch_do(
         return V_DRAW;
     }
 
-#if DO_TT_EXT
+#if DO_TT_EXT || DO_TT2
     tte = find_tentry(pos);
+#endif
+#if DO_TT_EXT
     ttMove = tte ? tte->move : MOVE_NONE;
     ttValue = tte ? value_from_tt(tte->value, ss->ply) : V_NONE;
     //ttDepth = inCheck || depth >= D_QS_CHECKS ? D_QS_CHECKS : D_QS_NO_CHECKS;
     ttDepth = D_QS_CHECKS;
 
-    if (tte && tte->depth == ttDepth &&
+    if (tte && tte->depth >= ttDepth &&
         (isPV ? tte->bound == B_EXACT :
          ttValue >= beta ? tte->bound & B_LOWER :
          tte->bound & B_UPPER))
@@ -187,7 +191,6 @@ static int qsearch_do(
     }
 #endif
 
-    position_get_checkinfo(pos);
     if (inCheck)
     {
         ss->sValue = V_NONE;
@@ -196,7 +199,7 @@ static int qsearch_do(
     }
     else
     {
-#if DO_TT_EXT
+#if DO_TT2
         if (tte)
             ss->sValue = bestValue = tte->sValue;
         else
@@ -205,7 +208,7 @@ static int qsearch_do(
         
         if (bestValue >= beta)
         {
-#if DO_TT_EXT
+#if DO_TT2
             if (!tte)
                 TT_store(state->key, value_to_tt(bestValue, ss->ply), B_LOWER,
                          D_NONE, MOVE_NONE, ss->sValue);
@@ -219,6 +222,8 @@ static int qsearch_do(
         move_pick_init(&picker, pos, ss, MP_QSEARCH, ttMove, &H);
     }
     
+    position_get_checkinfo(pos);
+
     while ((move = move_pick_next(&picker)) != 0)
     {
             
@@ -272,7 +277,7 @@ static int qsearch_do(
                 }
                 else
                 {
-#if DO_TT_EXT
+#if DO_TT2
                     TT_store(state->key, value_to_tt(bestValue, ss->ply), B_LOWER,
                              ttDepth, move, ss->sValue);
 #endif
@@ -289,7 +294,7 @@ static int qsearch_do(
         return -V_MATE_IN(ss->ply);
     }
 
-#if DO_TT_EXT
+#if DO_TT2
     TT_store(state->key, value_to_tt(bestValue, ss->ply),
              isPV && bestValue > oldAlpha ? B_EXACT : B_UPPER,
              ttDepth, bestMove, ss->sValue);
@@ -355,7 +360,6 @@ static int isearch_do(
         return ttValue;
     }
 
-    position_get_checkinfo(pos);
     if (inCheck)
     {
         ss->sValue = V_NONE;
@@ -390,6 +394,8 @@ static int isearch_do(
             return value;
     }
 #endif
+
+    position_get_checkinfo(pos);
 
     while ((move = move_pick_next(&picker)) != 0)
     {
@@ -785,10 +791,9 @@ move_t search_do(position_t* pos)
                 break;
             }
         }
-        
-        if (pos->state->plyNum <= 4 && TC_get_time() >= 2000)
+        if (pos->state->plyNum <= 5 && TC_get_time() >= 1000 * (pos->state->plyNum+1))
             break;
-            
+
         if (!TC_have_more_time())
             break;
     }

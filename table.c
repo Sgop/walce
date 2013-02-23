@@ -38,6 +38,7 @@ static void ttable_destroy(ttable_t* tt)
 static void ttable_clear(ttable_t* tt)
 {
     memset(tt->entries, 0, tt->size * sizeof(tcluster_t));
+    tt->age = 0;
 }
 
 static int ttable_set_size(ttable_t* tt, size_t mb)

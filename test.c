@@ -162,7 +162,7 @@ static int test_perft_correctness(const char* filename)
         int ms = TC_get_time();
         char str[100] = "";
         if (ms > 0)
-            sprintf(str, "(%lu/ms)", result / ms);
+            sprintf(str, "(%llu/ms)", result / ms);
 
         if (result != num)
         {

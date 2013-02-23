@@ -104,6 +104,12 @@ enum {
 };
 
 enum {
+    PHASE_MG,
+    PHASE_EG,
+    PHASE_NUM, 
+};
+
+enum {
     MOVE_NONE = 0,
 };
 

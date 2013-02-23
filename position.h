@@ -5,12 +5,6 @@
 #include "bitboard.h"
 #include <stdio.h>
 
-enum {
-    PHASE_MG,
-    PHASE_EG,
-    PHASE_NUM, 
-};
-
 // piece values
 extern const char P_CHAR[P_NUM];
 extern const int PieceValue[P_NUM][PHASE_NUM];

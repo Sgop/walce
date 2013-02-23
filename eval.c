@@ -61,44 +61,39 @@ static int eval_mobility(position_t* pos)
 {
     int res = 0;
 #if USE_PIECE_LIST
+    const int mBonus[C_NUM][PHASE_NUM][P_NUM] = {
+        { {0, 0, +2, +5, +3, +5, 0}, {0, 0, +2, +3, +4, +5, 0}, },
+        { {0, 0,- 2, -5, -3, -5, 0}, {0, 0, -2, -3, -4, -5, 0}, },
+    };
     bitboard_t occ = pos->color[C_WHITE] | pos->color[C_BLACK];
-    bitboard_t target;
-    int square;
-    int* pieces;
+    color_t color;
         
-    target = ~pos->color[C_WHITE];
-    pieces = pos->piece[C_WHITE][P_KNIGHT];
-    while ((square = *pieces++) != SQ_NONE)
-        res += popcount(B_KnightAttacks[square] & target) * 5;
+    for (color = C_WHITE; color <= C_BLACK; color++)
+    {
+        bitboard_t target = ~pos->color[color];
+        int* pieces;
+        int temp, square;
 
-    pieces = pos->piece[C_WHITE][P_BISHOP];
-    while ((square = *pieces++) != SQ_NONE)
-        res += popcount(sliding_attack_bishop(square, occ) & target) * 5;
+        pieces = pos->piece[color][P_KNIGHT];
+        for (temp = 0, square = *pieces; *pieces != SQ_NONE; pieces++)
+            temp += popcount(B_KnightAttacks[square] & target);
+        res += temp * mBonus[color][Phase][P_KNIGHT];
+    
+        pieces = pos->piece[color][P_BISHOP];
+        for (temp = 0, square = *pieces; *pieces != SQ_NONE; pieces++)
+            temp += popcount(sliding_attack_bishop(square, occ) & target);
+        res += temp * mBonus[color][Phase][P_BISHOP];
 
-    pieces = pos->piece[C_WHITE][P_ROOK];
-    while ((square = *pieces++) != SQ_NONE)
-        res += popcount(sliding_attack_rook(square, occ) & target) * 5;
+        pieces = pos->piece[color][P_ROOK];
+        for (temp = 0, square = *pieces; *pieces != SQ_NONE; pieces++)
+            temp += popcount(sliding_attack_rook(square, occ) & target);
+        res += temp * mBonus[color][Phase][P_ROOK];
 
-    pieces = pos->piece[C_WHITE][P_QUEEN];
-    while ((square = *pieces++) != SQ_NONE)
-        res += popcount((sliding_attack_bishop(square, occ) | sliding_attack_bishop(square, occ)) & target) * 5;
-
-    target = ~pos->color[C_BLACK];
-    pieces = pos->piece[C_BLACK][P_KNIGHT];
-    while ((square = *pieces++) != SQ_NONE)
-        res -= popcount(B_KnightAttacks[square] & target) * 5;
-
-    pieces = pos->piece[C_BLACK][P_BISHOP];
-    while ((square = *pieces++) != SQ_NONE)
-        res -= popcount(sliding_attack_bishop(square, occ) & target) * 5;
-
-    pieces = pos->piece[C_BLACK][P_ROOK];
-    while ((square = *pieces++) != SQ_NONE)
-        res -= popcount(sliding_attack_rook(square, occ) & target) * 5;
-
-    pieces = pos->piece[C_BLACK][P_QUEEN];
-    while ((square = *pieces++) != SQ_NONE)
-        res -= popcount((sliding_attack_bishop(square, occ) | sliding_attack_bishop(square, occ)) & target) * 5;
+        pieces = pos->piece[color][P_QUEEN];
+        for (temp = 0, square = *pieces; *pieces != SQ_NONE; pieces++)
+            temp += popcount((sliding_attack_bishop(square, occ) | sliding_attack_bishop(square, occ)) & target);
+        res += temp * mBonus[color][Phase][P_QUEEN];
+    }
 #endif
 
     return res;
