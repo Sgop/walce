@@ -712,6 +712,9 @@ move_t search_do(position_t* pos)
     if (RootMove == RootMoveEnd)
         return MOVE_NONE;
     
+    if (RootMove+1 == RootMoveEnd)
+        return RootMove->move;
+    
     while (!TC.stop && ++depth <= maxPly)
     {
         int alpha, beta, delta;
@@ -797,7 +800,8 @@ move_t search_do(position_t* pos)
         if (!TC_have_more_time())
             break;
     }
-    
+    IF.info_done();
+
     return RootMove->move;
 }
 
@@ -805,21 +809,9 @@ move_t think(position_t* pos)
 {
     move_t move;
     
-    log_line("Thinking");
-    log_line("     infinite: %s", TC.infinite ? "yes" : "no");
-    if (TC.l_depth)
-        log_line("  depth limit: %d", TC.l_depth);
-    else
-        log_line("  depth limit: none");
-    if (TC.l_time)
-        log_line("   time limit: %d ms", TC.l_time);
-    else
-        log_line("   time limit: none");
-    if (TC.l_nodes)
-        log_line("   node limit: %d", TC.l_nodes);
-    else
-        log_line("   node limit: none");
-    log_line("     time/inc: %.1fs, %ds", (float)TC.ctime[0] / 1000.0, TC.ctime[1] / 1000);
+    log_line("Thinking %s(depth: %d)(time: %d ms)(node: %d)(time: %.1f/%d s)",
+       TC.infinite ? "infinite ": "", TC.l_depth, TC.l_time, TC.l_nodes,
+       (float)TC.ctime[0] / 1000.0, TC.ctime[1] / 1000);
 
     stats_start();
     move = search_do(pos);

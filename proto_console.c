@@ -11,17 +11,27 @@
 #include "eval.h"
 #include "tcontrol.h"
 
-static int Depth;
+static int Depth = 0;
+static color_t Color = C_WHITE;
+static char Str[1024];
 
 static void info_depth(int depth)
 {
     Depth = depth;
 }
 
+static void info_done()
+{
+    if (*Str)
+    {
+        log_line(Str);
+        *Str = 0;
+    }
+}
+
 static void info_pv(int score, move_t* pv)
 {
-    char str[1024];
-    char* pos = str;
+    char* pos = Str;
     move_t* move;
     int ms = TC_get_time();
     
@@ -32,7 +42,12 @@ static void info_pv(int score, move_t* pv)
     {
         pos += sprintf(pos, " %s", move_format(*move));
     }
-    log_line(str);
+
+    if (ms < 20)
+        return;
+
+    log_line(Str);
+    *Str = 0;
 }
  
 
@@ -42,12 +57,13 @@ void loop_console(const char* fen)
 
     IF.info_depth = info_depth;
     IF.info_pv = info_pv;
+    IF.info_done = info_done;
     
     log_set_mode(0);
     log_line("console mode");
     if (fen)
         position_set(pos, fen);
-    position_print(pos);
+    position_print(pos, Color);
 
     TC.l_time = 1000;
     
@@ -77,6 +93,8 @@ void loop_console(const char* fen)
             log_line("  time <time>     - set time limit (when depth = 0)");
             log_line("  undo            - undo move");
             log_line("  check           - check internal variables");
+            log_line("  ttclear         - ");
+            log_line("  flip            - flip board");
         }
         else if (!strcmp(token, "quit"))
         {
@@ -86,18 +104,18 @@ void loop_console(const char* fen)
         {
             TT_clear();
             position_reset(pos);
-            position_print(pos);
+            position_print(pos, Color);
         }
         else if (!strcmp(token, "print"))
         {
-            position_print(pos);
+            position_print(pos, Color);
         }
         else if (!strcmp(token, "undo"))
         {
             if (pos->state->prev)
             {
                 position_unmove(pos);
-                position_print(pos);
+                position_print(pos, Color);
             }
             else
             {
@@ -109,7 +127,7 @@ void loop_console(const char* fen)
             char* fen = arg_rest();
             TT_clear();
             position_set(pos, fen);
-            position_print(pos);
+            position_print(pos, Color);
         }
         else if (!strcmp(token, "get"))
         {
@@ -159,7 +177,7 @@ void loop_console(const char* fen)
                 
             move = think(pos);
             log_line("best %s", move_format(move));
-            position_print(pos);
+            position_print(pos, Color);
         }
         else if (!strcmp(token, "+"))
         {
@@ -178,7 +196,7 @@ void loop_console(const char* fen)
                 {
                     log_line("engine move %s", move_format(move));
                     position_move(pos, move);
-                    position_print(pos);
+                    position_print(pos, Color);
                 }
                 else
                 { 
@@ -237,6 +255,11 @@ void loop_console(const char* fen)
         {
             TT_clear();
         }
+        else if (!strcmp(token, "flip"))
+        {
+            Color = Color == C_WHITE ? C_BLACK : C_WHITE;
+            position_print(pos, Color);
+        }
         else if (strlen(token) >= 4)
         {
             move_t move = parse_move(pos, token);
@@ -248,7 +271,7 @@ void loop_console(const char* fen)
             {
                 log_line("human move %s", move_format(move));
                 position_move(pos, move);
-                position_print(pos);
+                position_print(pos, Color);
                 if (position_is_draw(pos, 1, 1))
                     log_line("Game is draw");
             }

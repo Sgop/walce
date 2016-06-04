@@ -82,7 +82,7 @@ char* move_format(move_t move);
 position_t* position_new(void);
 void position_reset(position_t* pos);
 void position_destroy(position_t* pos);
-void position_print(position_t* pos);
+void position_print(position_t* pos, color_t color);
 int position_set(position_t* pos, const char* fen);
 char* position_get(position_t* pos);
 void position_move(position_t* pos, move_t move);

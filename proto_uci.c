@@ -47,7 +47,7 @@ static void search_done(position_t* pos, move_t move)
     if (!0)
     {
         position_move(pos, move);
-        position_print(pos);
+        position_print(pos, C_WHITE);
         send_line("bestmove %s", move_format(move));
     }
 }

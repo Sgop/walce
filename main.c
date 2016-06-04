@@ -27,9 +27,11 @@ int main(int argc, char** argv)
     //signal(SIGINT, sig_int);
     //signal(SIGINT, sig_term);
     
-    IF.info_depth = info;
     IF.info_pv = info;
+    IF.info_depth = info;
+    IF.info_done = info;
     IF.info_curmove = info;
+    IF.search_done = info;
 
     TC_clear();
 

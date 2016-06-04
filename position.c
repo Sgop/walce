@@ -91,13 +91,13 @@ void positions_init()
     CastleMaskFrom[E1] = CASTLE_WHITE_OO | CASTLE_WHITE_OOO;
     CastleMaskFrom[E8] = CASTLE_BLACK_OO | CASTLE_BLACK_OOO;
     CastleMaskFrom[A1] = CASTLE_WHITE_OOO;
-    CastleMaskTo[A1] = CASTLE_WHITE_OOO;
+    CastleMaskTo  [A1] = CASTLE_WHITE_OOO;
     CastleMaskFrom[A8] = CASTLE_BLACK_OOO;
-    CastleMaskTo[A8] = CASTLE_BLACK_OOO;
+    CastleMaskTo  [A8] = CASTLE_BLACK_OOO;
     CastleMaskFrom[H1] = CASTLE_WHITE_OO;
-    CastleMaskTo[H1] = CASTLE_WHITE_OO;
+    CastleMaskTo  [H1] = CASTLE_WHITE_OO;
     CastleMaskFrom[H8] = CASTLE_BLACK_OO;
-    CastleMaskTo[H8] = CASTLE_BLACK_OO;
+    CastleMaskTo  [H8] = CASTLE_BLACK_OO;
 }
 
 char* move_format(move_t move)
@@ -175,7 +175,7 @@ void position_destroy(position_t* pos)
     free(pos);
 }
 
-void position_print(position_t* pos)
+void position_print(position_t* pos, color_t color)
 {
     int rank, file;
     FILE* fd = log_get_fd();
@@ -183,42 +183,96 @@ void position_print(position_t* pos)
     if (!fd)
         return;
         
-    for (rank = Rank8; rank >= Rank1; rank--)
+    if (color == C_WHITE)
     {
-        fprintf(fd, "   +---+---+---+---+---+---+---+---+\n");
-        fprintf(fd, " %d ", rank+1);
-        for (file = FileA; file <= FileH; file++)
+        fprintf(fd, "\033[40m                                         \033[0m\n");
+        for (rank = Rank8; rank >= Rank1; rank--)
         {
-            char text[4] = "   ";
-            int square = SQ(file, rank);
-            bitboard_t mask = BB(square);
-            if (pos->color[C_BLACK] & pos->color[C_WHITE] & mask)
-                text[0] = '#';
-            else if (pos->color[C_BLACK] & mask)
-                text[0] = '*';
-            else if (pos->color[C_WHITE] & mask)
-                text[0] = ' ';
-            else if (pos->board[square] != P_NONE)
-                text[0] = '?';
-                
-            if (pos->type[P_PAWN] & mask)
-                text[1] = 'P';
-            else if (pos->type[P_ROOK] & mask)
-                text[1] = 'R';
-            else if (pos->type[P_KNIGHT] & mask)
-                text[1] = 'N';
-            else if (pos->type[P_BISHOP] & mask)
-                text[1] = 'B';
-            else if (pos->type[P_QUEEN] & mask)
-                text[1] = 'Q';
-            else if (pos->type[P_KING] & mask)
-                text[1] = 'K';
-            fprintf(fd, "|%s", text);
+            fprintf(fd, "\033[40m   ");
+            fprintf(fd, "\033[47m +---+---+---+---+---+---+---+---+ ");
+            fprintf(fd, "\033[40m   \033[0m\n");
+            fprintf(fd, "\033[1;37;40m %d ", rank+1);
+            fprintf(fd, "\033[47m");
+            for (file = FileA; file <= FileH; file++)
+            {
+                int square = SQ(file, rank);
+                bitboard_t mask = BB(square);
+                fprintf(fd, "\033[1;30m |");
+                if (pos->color[C_BLACK] & mask)
+                    fprintf(fd, "\033[1;30m");
+                else
+                    fprintf(fd, "\033[1;31m");
+                    
+                if (pos->type[P_PAWN] & mask)
+                    fprintf(fd, " P");
+                else if (pos->type[P_ROOK] & mask)
+                    fprintf(fd, " R");
+                else if (pos->type[P_KNIGHT] & mask)
+                    fprintf(fd, " N");
+                else if (pos->type[P_BISHOP] & mask)
+                    fprintf(fd, " B");
+                else if (pos->type[P_QUEEN] & mask)
+                    fprintf(fd, " Q");
+                else if (pos->type[P_KING] & mask)
+                    fprintf(fd, " K");
+                else
+                    fprintf(fd, "  ");
+            }
+            fprintf(fd, "\033[1;30m | ");
+            fprintf(fd, "\033[40m   \033[0m\n");
         }
-        fprintf(fd, "|\n");
+        fprintf(fd, "\033[40m   ");
+        fprintf(fd, "\033[47m +---+---+---+---+---+---+---+---+ ");
+        fprintf(fd, "\033[40m   \033[0m\n");
+        fprintf(fd, "\033[1;37;40m      a   b   c   d   e   f   g   h      \033[0m\n");
     }
-    fprintf(fd, "   +---+---+---+---+---+---+---+---+\n");
-    fprintf(fd, "     a   b   c   d   e   f   g   h  \n");
+    else if (color == C_BLACK)
+    {
+        fprintf(fd, "\033[40m                                         \033[0m\n");
+        for (rank = Rank1; rank <= Rank8; rank++)
+        {
+            fprintf(fd, "\033[40m   ");
+            fprintf(fd, "\033[47m +---+---+---+---+---+---+---+---+ ");
+            fprintf(fd, "\033[40m   \033[0m\n");
+            fprintf(fd, "\033[1;37;40m %d ", rank+1);
+            fprintf(fd, "\033[47m");
+            for (file = FileH; file >= FileA; file--)
+            {
+                int square = SQ(file, rank);
+                bitboard_t mask = BB(square);
+                fprintf(fd, "\033[1;30m |");
+                if (pos->color[C_BLACK] & mask)
+                    fprintf(fd, "\033[1;30m");
+                else
+                    fprintf(fd, "\033[1;31m");
+                    
+                if (pos->type[P_PAWN] & mask)
+                    fprintf(fd, " P");
+                else if (pos->type[P_ROOK] & mask)
+                    fprintf(fd, " R");
+                else if (pos->type[P_KNIGHT] & mask)
+                    fprintf(fd, " N");
+                else if (pos->type[P_BISHOP] & mask)
+                    fprintf(fd, " B");
+                else if (pos->type[P_QUEEN] & mask)
+                    fprintf(fd, " Q");
+                else if (pos->type[P_KING] & mask)
+                    fprintf(fd, " K");
+                else
+                    fprintf(fd, "  ");
+            }
+            fprintf(fd, "\033[1;30m | ");
+            fprintf(fd, "\033[40m   \033[0m\n");
+        }
+        fprintf(fd, "\033[40m   ");
+        fprintf(fd, "\033[47m +---+---+---+---+---+---+---+---+ ");
+        fprintf(fd, "\033[40m   \033[0m\n");
+        fprintf(fd, "\033[1;37;40m      h   g   f   e   d   c   b   a      \033[0m\n");
+    }
+    else
+    {
+        fprintf(fd, "error\n");
+    }
 }
 
 static void printFenError(const char* fen, int index, const char* error)

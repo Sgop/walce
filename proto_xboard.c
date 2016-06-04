@@ -56,7 +56,7 @@ static void search_done(position_t* pos, move_t move)
     if (!ModeAnalyze && InGame && move != MOVE_NONE)
     {
         position_move(pos, move);
-        position_print(pos);
+        position_print(pos, C_WHITE);
         send_line("move %s", move_format(move));
     }
 }
@@ -297,7 +297,7 @@ void loop_xboard(void)
             else
             {
                 position_move(pos, move);
-                position_print(pos);
+                position_print(pos, C_WHITE);
                 if (ModeAnalyze || engineColor == pos->to_move)
                     threads_search();
             }

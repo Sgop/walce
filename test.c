@@ -166,7 +166,7 @@ static int test_perft_correctness(const char* filename)
 
         if (result != num)
         {
-            position_print(position);
+            position_print(position, C_WHITE);
             test_failed("depth %d: result %llu, expected %llu %s",
                         depth, result, num, str);
             failed++;
@@ -284,6 +284,7 @@ int main(int argc, char** argv)
     IF.info_depth = info_depth;
     IF.info_pv = info;
     IF.info_curmove = info;
+    IF.info_done = info;
 
     if (argc > 1)
         caseID = atoi(argv[1]);
