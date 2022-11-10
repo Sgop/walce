@@ -268,10 +268,12 @@ static void info_depth(int depth)
 {
     Depth = depth;
 }
+static void info_pv(int score, move_t* pv) {}
+static void info_done() {}
+static void info_curmove(move_t move, int num) {}
+static void search_done(position_t* pos, move_t move) {}
 
-static void info() { }
-
-int main(int argc, char** argv)
+int main_test(int argc, char** argv)
 {
     int failed = 0;
     int caseID = -1;
@@ -282,9 +284,10 @@ int main(int argc, char** argv)
     prnd_init();
     
     IF.info_depth = info_depth;
-    IF.info_pv = info;
-    IF.info_curmove = info;
-    IF.info_done = info;
+    IF.info_pv = info_pv;
+    IF.info_curmove = info_curmove;
+    IF.info_done = info_done;
+    IF.search_done = search_done;
 
     if (argc > 1)
         caseID = atoi(argv[1]);

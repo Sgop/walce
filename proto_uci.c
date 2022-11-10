@@ -30,7 +30,7 @@ static void info_pv(int score, move_t* pv)
         pos += sprintf(pos, " %s", move_format(*move));
     }
 
-    send_line("info depth %d score cp %d time %d nodes %lld nps %lld pv %s",
+    send_line("info depth %d score cp %d time %d nodes %lld nps %lld pv%s",
               Depth, score * 100 / PieceValue[P_PAWN][PHASE_MG], ms,
               nodes, ms > 0 ? nodes * 1000 / ms : nodes, str);
 }
@@ -43,11 +43,13 @@ static void info_curmove(move_t move, int num)
  
 static void search_done(position_t* pos, move_t move)
 {
+    log_line("search_done");
     //FIXME: enter critical section
     if (!0)
     {
         position_move(pos, move);
         position_print(pos, C_WHITE);
+        log_line("bestmove %s", move_format(move));
         send_line("bestmove %s", move_format(move));
     }
 }
@@ -147,7 +149,7 @@ void loop_uci()
                 if (token && !strcmp(token, "infinite"))
                 {
                     TC.infinite = 1;
-                    continue;
+                    break;
                 }
 
                 val = arg_next();

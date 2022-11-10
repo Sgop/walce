@@ -8,7 +8,7 @@ static int LogMode = 0;
 
 void log_init()
 {
-    debug = fopen("debug.log", "w");
+    debug = fopen("debug.log", "w+");
 }
 
 void log_exit()

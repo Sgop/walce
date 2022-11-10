@@ -14,7 +14,11 @@
 
 //static void sig_int(int arg) { } 
 //static void sig_term(int arg) { }
-static void info() { }
+static void info_pv(int score, move_t* pv) {}
+static void info_depth(int depth) {}
+static void info_done() {}
+static void info_curmove(move_t move, int num) {}
+static void search_done(position_t* pos, move_t move) {}
 
 int main(int argc, char** argv)
 {
@@ -27,19 +31,18 @@ int main(int argc, char** argv)
     //signal(SIGINT, sig_int);
     //signal(SIGINT, sig_term);
     
-    IF.info_pv = info;
-    IF.info_depth = info;
-    IF.info_done = info;
-    IF.info_curmove = info;
-    IF.search_done = info;
+    IF.info_pv = info_pv;
+    IF.info_depth = info_depth;
+    IF.info_done = info_done;
+    IF.info_curmove = info_curmove;
+    IF.search_done = search_done;
 
     TC_clear();
 
     while (1)
     {
-        char* line;
-        char* token;
-        
+        char* line = NULL;
+        char* token = NULL;
         if (argc > 1)
         {
             token = "console";

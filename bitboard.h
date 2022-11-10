@@ -3,7 +3,9 @@
 
 #include "types.h"
 #include <stdio.h>
-
+#ifdef _WIN32
+#  include <intrin.h>
+#endif
 
 //#define BB(square) (1ULL << (square))
 //#define BB_RANK(square) (B_Rank1 << ((square) & ~7))
@@ -70,8 +72,25 @@ void bitboard_print(FILE* fd, bitboard_t bb);
 int popcount_max15(bitboard_t b);
 int popcount(bitboard_t b);
 
-    //return BSFTable[bsf_index(b)];
-#ifdef IS_64BIT
+//return BSFTable[bsf_index(b)];
+#ifdef _WIN32
+inline int lsb(bitboard_t b) {
+  unsigned long idx;
+
+  if (b & 0xffffffff) {
+    _BitScanForward(&idx, (int32_t)b);
+    return (int)(idx);
+  }
+  else {
+    _BitScanForward(&idx, (int32_t)(b >> 32));
+    return (int)(idx + 32);
+  }
+}
+#endif
+
+#ifdef _WIN32
+#  define get_lsb(b) lsb(b)
+#elif IS_64BIT
 #  define get_lsb(b) __builtin_ctzl(b)
 #else
 #  define get_lsb(b) ((int)(b) ? __builtin_ctz((int)(b)) : 32 + __builtin_ctz((int)((b) >> 32)))

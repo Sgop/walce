@@ -5,6 +5,8 @@
 
 const int PST[P_NUM][PHASE_NUM][SQ_NUM] = {
 { // NONE
+  {0},
+  {0},
 },
 { // PAWN
     {

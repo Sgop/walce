@@ -35,15 +35,15 @@ static void info_pv(int score, move_t* pv)
     move_t* move;
     int ms = TC_get_time();
     
-    pos += sprintf(pos, "%2u  %7d  %5d  %8d  ",
-                   Depth, score, ms/10, stats_get(ST_NODE));
+    pos += sprintf(pos, "%2u  %7d  %10.3f  %8d  ",
+                   Depth, score, (double)ms/1000, stats_get(ST_NODE));
 
     for (move = pv; *move != MOVE_NONE; move++)
     {
         pos += sprintf(pos, " %s", move_format(*move));
     }
 
-    if (ms < 20)
+    if (ms < 0)
         return;
 
     log_line(Str);

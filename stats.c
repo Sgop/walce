@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <sys/time.h>
 #include "stats.h"
 #include "log.h"
 #include "tcontrol.h"

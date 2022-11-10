@@ -1356,7 +1356,7 @@ int position_see(position_t* pos, move_t move)
             bitboard_t b;
             if ((b = (oppAttackers & pos->type[piece])) != 0)
             {
-                occ ^= b & -b;
+                occ ^= b & (0-b);
                 
                 if (piece == P_PAWN || piece == P_BISHOP || piece == P_QUEEN)
                     attackers |= sliding_attack_bishop(to, occ) & (pos->type[P_BISHOP] | pos->type[P_QUEEN]);

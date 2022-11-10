@@ -719,7 +719,6 @@ move_t search_do(position_t* pos)
     {
         int alpha, beta, delta;
         int bestValue = -V_INF;
-        
         IF.info_depth(depth);
 
 #if DO_ASPIRATION
@@ -794,12 +793,13 @@ move_t search_do(position_t* pos)
                 break;
             }
         }
-        if (pos->state->plyNum <= 5 && TC_get_time() >= 1000 * (pos->state->plyNum+1))
-            break;
+        //if (pos->state->plyNum <= 5 && TC_get_time() >= 1000 * (pos->state->plyNum+1))
+        //    break;
 
         if (!TC_have_more_time())
             break;
     }
+    log_line("info_done");
     IF.info_done();
 
     return RootMove->move;
