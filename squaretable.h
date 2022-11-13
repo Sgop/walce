@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-const int PST[P_NUM][PHASE_NUM][SQ_NUM] = {
+const int PST[PieceNum][PHASE_NUM][SquareNum] = {
 { // NONE
   {0},
   {0},

@@ -45,8 +45,8 @@ void*
 #endif
 search_main(void* arg)
 {
-  thread_t* thread = arg;
-  move_t move;
+  thread_t* thread = (thread_t*)arg;
+  Move move;
 
   thread->exit = 0;
   thread->searching = 0;

@@ -5,11 +5,11 @@
 #include "position.h"
 
 typedef struct {
-    void (*info_pv)(int score, move_t* pv);
+    void (*info_pv)(int score, Move* pv);
     void (*info_depth)(int depth);
     void (*info_done)();
-    void (*info_curmove)(move_t move, int num);
-    void (*search_done)(position_t* pos, move_t move);
+    void (*info_curmove)(Move move, int num);
+    void (*search_done)(position_t* pos, Move move);
 } interface_t;
 
 extern interface_t IF;

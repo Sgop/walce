@@ -38,11 +38,11 @@
 
 static move_stack_t RootMove[MAX_MOVES];
 static move_stack_t* RootMoveEnd;
-static move_t PV[MAX_PLY_PLUS_2];
+static Move PV[MAX_PLY_PLUS_2];
 static history_t H;
 
 
-static move_stack_t* root_move_find(move_t move)
+static move_stack_t* root_move_find(Move move)
 {
     move_stack_t* cur = RootMove;
     for (cur = RootMove; cur != RootMoveEnd; cur++)
@@ -68,7 +68,7 @@ static int value_to_tt(int v, int ply)
             v;
 }
 
-static void extract_pv_from_tt(position_t* pos, move_t move, int depth)
+static void extract_pv_from_tt(position_t* pos, Move move, int depth)
 {
     tentry_t* tte;
     int ply = 0;
@@ -132,7 +132,7 @@ static tentry_t* find_tentry(position_t* pos)
     return NULL;
 }
 
-static void add_killer(search_stack_t* ss, move_t move)
+static void add_killer(search_stack_t* ss, Move move)
 {
 #if DO_KILLERS
     if (move != ss->killers[0])
@@ -150,16 +150,16 @@ static int qsearch_do(
 {
     int inCheck = position_in_check(pos);
     tentry_t* tte;
-    move_t ttMove = MOVE_NONE;
+    Move ttMove = MOVE_NONE;
     int ttValue;
     int ttDepth;
-    move_t move;
+    Move move;
     move_pick_t picker;
 #if DO_TT2
     state_t* state = pos->state;
     int oldAlpha = alpha;
 #endif
-    move_t bestMove;
+    Move bestMove;
     int bestValue = -V_INF;
     
     if (!DO_QUIECENCE)
@@ -232,15 +232,15 @@ static int qsearch_do(
 #if DO_FUTILITY
 /*
         if (!isPV && !inCheck && move != ttMove &&
-            MOVE_TYPE(move) != M_PROMOTION)
+            type_of(move) != Promotion)
             // !givesCheck && 
             // enoughMAterial &&
             // !pos_is_passed_pawn_push 
         {
-            int fBase = ss->sValue + PieceValue[P_PAWN][PHASE_EG] * 2;
-            int fValue = fBase + PieceValue[pos->board[MOVE_TO(move)]][PHASE_EG];
-            if (MOVE_TYPE(move) == M_ENPASSANT)
-                fValue += PieceValue[P_PAWN][PHASE_EG];
+            int fBase = ss->sValue + PieceValue[Pawn][PHASE_EG] * 2;
+            int fValue = fBase + PieceValue[pos->board[to_sq(move)]][PHASE_EG];
+            if (type_of(move) == EnPassant)
+                fValue += PieceValue[Pawn][PHASE_EG];
             if (fValue < beta)
             {
                 if (fValue > bestValue)
@@ -251,7 +251,7 @@ static int qsearch_do(
 */
 #endif
         if (!isPV && !inCheck && move != ttMove &&
-            MOVE_TYPE(move) != M_PROMOTION &&
+          type_of(move) != Promotion &&
             position_see_sign(pos, move) < 0)
             continue;
 
@@ -310,15 +310,15 @@ static int isearch_do(
         int alpha, int beta, int depth)
 {
     int inCheck = position_in_check(pos);
-    move_t playedMoves[64];
+    Move playedMoves[64];
     int playedCnt = 0;
     tentry_t* tte;
-    move_t ttMove;
+    Move ttMove;
     int ttValue;
     move_pick_t picker;
     state_t* state = pos->state;
-    move_t move;
-    move_t bestMove = MOVE_NONE;
+    Move move;
+    Move bestMove = MOVE_NONE;
     int bestValue = -V_INF;
     unsigned moveCnt = 0;
     
@@ -504,13 +504,13 @@ static int isearch_do(
             int bonus = depth * depth;
                     
             add_killer(ss, bestMove);
-            history_add(&H, pos->to_move, pos->board[MOVE_FROM(bestMove)], MOVE_TO(bestMove), bonus);
+            history_add(&H, pos->to_move, pos->board[from_sq(bestMove)], to_sq(bestMove), bonus);
 
             int i1;
             for (i1 = 0; i1 < playedCnt-1; i1++)
             {
-                move_t m = playedMoves[i1];
-                history_add(&H, pos->to_move, pos->board[MOVE_FROM(m)], MOVE_TO(m), -bonus);
+                Move m = playedMoves[i1];
+                history_add(&H, pos->to_move, pos->board[from_sq(m)], to_sq(m), -bonus);
             }
         }
     }
@@ -543,13 +543,13 @@ static int rsearch_do(
         int alpha, int beta, int depth)
 {
     int inCheck = position_in_check(pos);
-    move_t playedMoves[64];
+    Move playedMoves[64];
     int playedCnt = 0;
     move_pick_t picker;
     state_t* state = pos->state;
-    move_t move;
-    move_t ttMove;
-    move_t bestMove = MOVE_NONE;
+    Move move;
+    Move ttMove;
+    Move bestMove = MOVE_NONE;
     int bestValue = -V_INF;
     unsigned moveCnt = 0;
     
@@ -660,13 +660,13 @@ static int rsearch_do(
             int bonus = depth * depth;
                     
             add_killer(ss, bestMove);
-            history_add(&H, pos->to_move, pos->board[MOVE_FROM(bestMove)], MOVE_TO(bestMove), +bonus);
+            history_add(&H, pos->to_move, pos->board[from_sq(bestMove)], to_sq(bestMove), +bonus);
 
             int i1;
             for (i1 = 0; i1 < playedCnt - 1; i1++)
             {
-                move_t m = playedMoves[i1];
-                history_add(&H, pos->to_move, pos->board[MOVE_FROM(m)], MOVE_TO(m), -bonus);
+                Move m = playedMoves[i1];
+                history_add(&H, pos->to_move, pos->board[from_sq(m)], to_sq(m), -bonus);
             }
         }
     }
@@ -694,7 +694,7 @@ static int rsearch_do(
 
 /*****************************************************************/
 /*****************************************************************/
-move_t search_do(position_t* pos)
+Move search_do(position_t* pos)
 {
     search_stack_t ss[MAX_PLY_PLUS_2];
     int depth = 0;
@@ -726,7 +726,7 @@ move_t search_do(position_t* pos)
 
         if (depth >= 5 && abs(prevScore) < V_WIN)
         {
-            delta = PieceValue[P_PAWN][PHASE_MG] / 4;
+            delta = PieceValue[Pawn][PHASE_MG] / 4;
             alpha = prevScore - delta;
             beta = prevScore + delta;
         }
@@ -805,9 +805,9 @@ move_t search_do(position_t* pos)
     return RootMove->move;
 }
 
-move_t think(position_t* pos)
+Move think(position_t* pos)
 {
-    move_t move;
+    Move move;
     
     log_line("Thinking %s(depth: %d)(time: %d ms)(node: %d)(time: %.1f/%d s)",
        TC.infinite ? "infinite ": "", TC.l_depth, TC.l_time, TC.l_nodes,
@@ -882,43 +882,43 @@ uint64_t divide(position_t* pos, int depth)
  * @param move the move to check and update
  * @return 1 if legal, 0 otherwise
  */
-move_t parse_move(position_t* pos, const char* line)
+Move parse_move(position_t* pos, const char* line)
 {
     if (strlen(line) < 4)
-        return 0;
+        return MOVE_NONE;
                 
-    int file1 = line[0] - 'a';
-    int rank1 = line[1] - '1';
-    int file2 = line[2] - 'a';
-    int rank2 = line[3] - '1';
+    File file1 = File(line[0] - 'a');
+    Rank rank1 = Rank(line[1] - '1');
+    File file2 = File(line[2] - 'a');
+    Rank rank2 = Rank(line[3] - '1');
     char prom = line[4];
-    int piece = P_KNIGHT;
+    int piece = Knight;
             
     if ((file1 >> 3) != 0 || (rank1 >> 3) != 0 ||
         (file2 >> 3) != 0 || (rank2 >> 3) != 0)
-        return 0;
+        return MOVE_NONE;
                     
     if (prom)
     {
         if (prom == 'q')
-            piece = P_QUEEN;
+            piece = Queen;
         else if (prom == 'r')
-            piece = P_ROOK;
+            piece = Rook;
         else if (prom == 'b')
-            piece = P_BISHOP;
+            piece = Bishop;
         else if (prom == 'n')
-            piece = P_KNIGHT;
+            piece = Knight;
         else if (prom == ' ')
             prom = 0;
         else
-            return 0;
+            return MOVE_NONE;
     }
     
-    int from = SQ(file1, rank1);
-    int to = SQ(file2, rank2);
+    Square from = make_square(file1, rank1);
+    Square to = make_square(file2, rank2);
     
     // make normal move
-    move_t m = MAKE_MOVE_TYPE(from, to, M_NORMAL, piece);
+    Move m = make<NormalMove>(from, to, piece);
     
     // create legal moves and update move type
     move_stack_t moves[MAX_MOVES];
@@ -927,14 +927,14 @@ move_t parse_move(position_t* pos, const char* line)
     
     for ( ; Cur != last; Cur++)
     {
-        if ((Cur->move & ~M_MASK) == m)
+        if ((Cur->move & ~Castle) == m)
         {
-            if (MOVE_TYPE(Cur->move) == M_PROMOTION && !prom)
-                return 0;
-            if (MOVE_TYPE(Cur->move) != M_PROMOTION && prom)
-                return 0;
+            if (type_of(Cur->move) == Promotion && !prom)
+                return MOVE_NONE;
+            if (type_of(Cur->move) != Promotion && prom)
+                return MOVE_NONE;
             return Cur->move;
         }
     }
-    return 0;
+    return MOVE_NONE;
 }

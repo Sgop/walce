@@ -1,11 +1,11 @@
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include "stats.h"
 #include "log.h"
 #include "tcontrol.h"
 
 static unsigned Stats[ST_NUM];
-static char* StatsStr[ST_NUM] = {
+static std::string StatsStr[ST_NUM] = {
   "nodes visited",
   "generated move",
   "static evaluation",

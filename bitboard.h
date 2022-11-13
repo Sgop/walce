@@ -42,24 +42,24 @@ extern const bitboard_t B_NotFileH;
 extern const bitboard_t B_NotRankpn1;
 extern const bitboard_t B_NotRank8;
 
-extern bitboard_t B_Square[SQ_NUM];
+extern bitboard_t B_Square[SquareNum];
 extern bitboard_t B_File[FileNum];
 extern bitboard_t B_Rank[RankNum];
 
-extern bitboard_t B_KnightAttacks[SQ_NUM];
-extern bitboard_t B_KingAttacks[SQ_NUM];
-extern bitboard_t B_WPawnAttacks[SQ_NUM];
-extern bitboard_t B_BPawnAttacks[SQ_NUM];
-extern bitboard_t B_BishopAttacks[SQ_NUM];
-extern bitboard_t B_RookAttacks[SQ_NUM];
-extern bitboard_t B_QueenAttacks[SQ_NUM];
+extern bitboard_t B_KnightAttacks[SquareNum];
+extern bitboard_t B_KingAttacks[SquareNum];
+extern bitboard_t B_WPawnAttacks[SquareNum];
+extern bitboard_t B_BPawnAttacks[SquareNum];
+extern bitboard_t B_BishopAttacks[SquareNum];
+extern bitboard_t B_RookAttacks[SquareNum];
+extern bitboard_t B_QueenAttacks[SquareNum];
 
-extern bitboard_t B_Between[SQ_NUM][SQ_NUM];
-extern bitboard_t B_InFront[C_NUM][RankNum];
-extern bitboard_t B_Forward[C_NUM][SQ_NUM];
+extern bitboard_t B_Between[SquareNum][SquareNum];
+extern bitboard_t B_InFront[ColorNum][RankNum];
+extern bitboard_t B_Forward[ColorNum][SquareNum];
 extern bitboard_t B_AdjacentFile[FileNum];
-extern bitboard_t B_PassedPawnMask[C_NUM][SQ_NUM];
-extern bitboard_t B_AttackSpawnMask[C_NUM][SQ_NUM];
+extern bitboard_t B_PassedPawnMask[ColorNum][SquareNum];
+extern bitboard_t B_AttackSpawnMask[ColorNum][SquareNum];
 
 void bitboards_init(void);
 

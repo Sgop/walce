@@ -30,42 +30,42 @@ const bitboard_t B_NotFileH = 0x7f7f7f7f7f7f7f7fULL;
 const bitboard_t B_NotRank1 = 0xffffffffffffff00ULL;
 const bitboard_t B_NotRank8 = 0x00ffffffffffffffULL;
 
-bitboard_t B_Square[SQ_NUM];
+bitboard_t B_Square[SquareNum];
 bitboard_t B_File[FileNum];
 bitboard_t B_Rank[RankNum];
 
 static const int RDeltas[] = { DELTA_N,  DELTA_E,  DELTA_S,  DELTA_W };
 static const int BDeltas[] = { DELTA_NE, DELTA_SE, DELTA_SW, DELTA_NW };
 
-static int BSFTable[SQ_NUM];
+static int BSFTable[SquareNum];
 
 // step attacks
-bitboard_t B_KnightAttacks[SQ_NUM] = { 0 };
-bitboard_t B_KingAttacks[SQ_NUM] = { 0 };
-bitboard_t B_WPawnAttacks[SQ_NUM] = { 0 };
-bitboard_t B_BPawnAttacks[SQ_NUM] = { 0 };
+bitboard_t B_KnightAttacks[SquareNum] = { 0 };
+bitboard_t B_KingAttacks[SquareNum] = { 0 };
+bitboard_t B_WPawnAttacks[SquareNum] = { 0 };
+bitboard_t B_BPawnAttacks[SquareNum] = { 0 };
 // pseudo sliding attacks
-bitboard_t B_BishopAttacks[SQ_NUM] = { 0 };
-bitboard_t B_RookAttacks[SQ_NUM] = { 0 };
-bitboard_t B_QueenAttacks[SQ_NUM] = { 0 };
+bitboard_t B_BishopAttacks[SquareNum] = { 0 };
+bitboard_t B_RookAttacks[SquareNum] = { 0 };
+bitboard_t B_QueenAttacks[SquareNum] = { 0 };
 // squares between two other squares
-bitboard_t B_Between[SQ_NUM][SQ_NUM];
-bitboard_t B_InFront[C_NUM][8];
-bitboard_t B_Forward[C_NUM][SQ_NUM];
+bitboard_t B_Between[SquareNum][SquareNum];
+bitboard_t B_InFront[ColorNum][8];
+bitboard_t B_Forward[ColorNum][SquareNum];
 bitboard_t B_AdjacentFile[FileNum];
-bitboard_t B_PassedPawnMask[C_NUM][SQ_NUM];
-bitboard_t B_AttackSpawnMask[C_NUM][SQ_NUM];
+bitboard_t B_PassedPawnMask[ColorNum][SquareNum];
+bitboard_t B_AttackSpawnMask[ColorNum][SquareNum];
 // sliding attacks
 static bitboard_t RTable[0x19000];
 static bitboard_t BTable[0x19000];
-static bitboard_t RMagics[SQ_NUM];
-static bitboard_t BMagics[SQ_NUM];
-static bitboard_t BMasks[SQ_NUM];
-static bitboard_t RMasks[SQ_NUM];
-static unsigned RShifts[SQ_NUM];
-static unsigned BShifts[SQ_NUM];
-bitboard_t* RAttacks[SQ_NUM];
-bitboard_t* BAttacks[SQ_NUM];
+static bitboard_t RMagics[SquareNum];
+static bitboard_t BMagics[SquareNum];
+static bitboard_t BMasks[SquareNum];
+static bitboard_t RMasks[SquareNum];
+static unsigned RShifts[SquareNum];
+static unsigned BShifts[SquareNum];
+bitboard_t* RAttacks[SquareNum];
+bitboard_t* BAttacks[SquareNum];
 
 typedef unsigned (IndexFunc)(int, bitboard_t);
 
@@ -119,10 +119,10 @@ static unsigned bsf_index(bitboard_t b)
 #endif
 }
 
-static int square_distance(int s1, int s2)
+static int square_distance(Square s1, Square s2)
 {
-  int d1 = abs(FILE_OF(s1) - FILE_OF(s2));
-  int d2 = abs(RANK_OF(s1) - RANK_OF(s2));
+  int d1 = abs(file_of(s1) - file_of(s2));
+  int d2 = abs(rank_of(s1) - rank_of(s2));
   return d2 > d1 ? d2 : d1;
 }
 
@@ -131,7 +131,7 @@ static int is_ok(int square)
   return (square >= A1 && square <= H8);
 }
 
-static bitboard_t sliding_attack(const int deltas[], int square, bitboard_t occupied)
+static bitboard_t sliding_attack(const int deltas[], Square square, bitboard_t occupied)
 {
   bitboard_t attack = 0;
   int i1, s;
@@ -139,7 +139,7 @@ static bitboard_t sliding_attack(const int deltas[], int square, bitboard_t occu
   for (i1 = 0; i1 < 4; i1++)
   {
     for (s = square + deltas[i1];
-      is_ok(s) && square_distance(s, s - deltas[i1]) == 1;
+      is_ok(s) && square_distance(Square(s), Square(s - deltas[i1])) == 1;
       s += deltas[i1])
     {
       attack |= BB(s);
@@ -201,8 +201,7 @@ static void init_magics(
   // attacks[s] is a pointer to the beginning of the attacks table for square 's'
   attacks[A1] = table;
 
-  int s;
-  for (s = A1; s <= H8; s++)
+  for (Square s = A1; s <= H8; ++s)
   {
     // Board edges are not considered in the relevant occupancies
     bitboard_t edges =
@@ -233,7 +232,7 @@ static void init_magics(
     if (s < H8)
       attacks[s + 1] = attacks[s] + size;
 
-    booster = MagicBoosters[RANK_OF(s)];
+    booster = MagicBoosters[rank_of(s)];
 
     // Find a magic for square 's' picking up an (almost) random number
     // until we find the one that passes the verification test.
@@ -268,14 +267,13 @@ static void init_magics(
 
 void bitboards_init(void)
 {
-  int i1, i2, r, f;
-  color_t c;
+  int r, f;
 
   { // bitboards
-    for (i1 = A1; i1 <= H8; i1++)
+    for (auto i1 = A1; i1 <= H8; ++i1)
       B_Square[i1] = 1ULL << i1;
 
-    for (i1 = 0; i1 < 8; i1++)
+    for (auto i1 = 0; i1 < 8; ++i1)
     {
       B_File[i1] = B_FileA << i1;
       B_Rank[i1] = B_Rank1 << (i1 * 8);
@@ -283,42 +281,48 @@ void bitboards_init(void)
   }
 
   { // create table used to find index of lsb
-    for (i1 = 0; i1 < 64; i1++)
+    for (auto i1 = 0; i1 < H8; ++i1)
       BSFTable[bsf_index(1ULL << i1)] = i1;
   }
 
   { // create attack tables used to generate step attack moves
-    int stepWPawn[] = { 7, 9, 0 };
-    int stepBPawn[] = { -7, -9, 0 };
-    int stepKnight[] = { 17, 15, 10, 6, -6, -10, -15, -17, 0 };
-    int stepKing[] = { 9, 7, -7, -9, 8, 1, -1, -8, 0 };
+    Direction stepWPawn[] = { DELTA_NE, DELTA_NW, DELTA_NONE };
+    Direction stepBPawn[] = { DELTA_SE, DELTA_SW, DELTA_NONE };
+    Direction stepKnight[] = { 
+      DELTA_N + DELTA_NE, DELTA_N + DELTA_NW,
+      DELTA_E + DELTA_NE, DELTA_E + DELTA_SE,
+      DELTA_W + DELTA_NW, DELTA_W + DELTA_NE,
+      DELTA_S + DELTA_SE, DELTA_S + DELTA_SW, DELTA_NONE };
+    Direction stepKing[] = {
+      DELTA_NE, DELTA_NW, DELTA_SE, DELTA_SW,
+      DELTA_N, DELTA_W, DELTA_E, DELTA_S, DELTA_NONE
+    };
 
 #define VALID_STEP(from, to)  (is_ok(to) && square_distance(from, to) < 3)
 
-    for (i1 = A1; i1 <= H8; i1++)
+    for (auto i1 = A1; i1 <= H8; ++i1)
     {
-      int s;
-      for (s = 0; stepWPawn[s]; s++)
+      for (int s = 0; stepWPawn[s] != DELTA_NONE; s++)
       {
-        int to = i1 + stepWPawn[s];
+        Square to = i1 + stepWPawn[s];
         if (VALID_STEP(i1, to))
           B_WPawnAttacks[i1] |= BB(to);
       }
-      for (s = 0; stepBPawn[s]; s++)
+      for (int s = 0; stepBPawn[s] != DELTA_NONE; ++s)
       {
-        int to = i1 + stepBPawn[s];
+        Square to = i1 + stepBPawn[s];
         if (VALID_STEP(i1, to))
           B_BPawnAttacks[i1] |= BB(to);
       }
-      for (s = 0; stepKing[s]; s++)
+      for (int s = 0; stepBPawn[s] != DELTA_NONE; ++s)
       {
-        int to = i1 + stepKing[s];
+        Square to = i1 + stepKing[s];
         if (VALID_STEP(i1, to))
           B_KingAttacks[i1] |= BB(to);
       }
-      for (s = 0; stepKnight[s]; s++)
+      for (int s = 0; stepBPawn[s] != DELTA_NONE; ++s)
       {
-        int to = i1 + stepKnight[s];
+        Square to = i1 + stepKnight[s];
         if (VALID_STEP(i1, to))
           B_KnightAttacks[i1] |= BB(to);
       }
@@ -332,7 +336,7 @@ void bitboards_init(void)
   }
 
   { // create pseudo sliding tables
-    for (i1 = A1; i1 <= H8; i1++)
+    for (auto i1 = A1; i1 <= H8; ++i1)
     {
       B_BishopAttacks[i1] = sliding_attack_bishop(i1, 0);
       B_RookAttacks[i1] = sliding_attack_rook(i1, 0);
@@ -341,29 +345,29 @@ void bitboards_init(void)
   }
 
   { // create other util bitboards
-    for (r = Rank1; r <= Rank8; r++)
+    for (r = Rank1; r <= Rank8; ++r)
     {
-      B_InFront[C_WHITE][r] = r == Rank8 ? B_Empty : (B_Universe << ((r + 1) * 8));
-      B_InFront[C_BLACK][r] = r == Rank1 ? B_Empty : (B_Universe >> (64 - r * 8));
+      B_InFront[White][r] = r == Rank8 ? B_Empty : (B_Universe << ((r + 1) * 8));
+      B_InFront[Black][r] = r == Rank1 ? B_Empty : (B_Universe >> (64 - r * 8));
     }
-    for (f = FileA; f <= FileH; f++)
+    for (f = FileA; f <= FileH; ++f)
     {
       B_AdjacentFile[f] = (f > FileA ? B_File[f - 1] : 0) | (f < FileH ? B_File[f + 1] : 0);
     }
-    for (c = C_WHITE; c <= C_BLACK; c++)
+    for (auto c = White; c <= Black; ++c)
     {
-      for (i1 = A1; i1 <= H8; i1++)
+      for (auto i1 = A1; i1 <= H8; ++i1)
       {
-        r = RANK_OF(i1);
-        f = FILE_OF(i1);
+        r = rank_of(i1);
+        f = file_of(i1);
         B_Forward[c][i1] = B_InFront[c][r] & B_File[f];
         B_PassedPawnMask[c][i1] = B_InFront[c][r] & (B_File[f] | B_AdjacentFile[f]);
         B_AttackSpawnMask[c][i1] = B_InFront[c][r] & B_AdjacentFile[f];
       }
     }
-    for (i1 = A1; i1 <= H8; i1++)
+    for (auto i1 = A1; i1 <= H8; ++i1)
     {
-      for (i2 = A1; i2 <= H8; i2++)
+      for (auto i2 = A1; i2 <= H8; ++i2)
       {
         if (B_QueenAttacks[i1] & BB(i2))
         {

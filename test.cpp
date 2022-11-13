@@ -166,7 +166,7 @@ static int test_perft_correctness(const char* filename)
 
         if (result != num)
         {
-            position_print(position, C_WHITE);
+            position_print(position, White);
             test_failed("depth %d: result %llu, expected %llu %s",
                         depth, result, num, str);
             failed++;
@@ -224,7 +224,7 @@ static int checkSearch(const char* fen)
 {
     int ms;
     position_t* pos;
-    move_t move;
+    Move move;
     
     pos = position_new();
     if (!position_set(pos, fen))
@@ -268,10 +268,10 @@ static void info_depth(int depth)
 {
     Depth = depth;
 }
-static void info_pv(int score, move_t* pv) {}
+static void info_pv(int score, Move* pv) {}
 static void info_done() {}
-static void info_curmove(move_t move, int num) {}
-static void search_done(position_t* pos, move_t move) {}
+static void info_curmove(Move move, int num) {}
+static void search_done(position_t* pos, Move move) {}
 
 int main_test(int argc, char** argv)
 {

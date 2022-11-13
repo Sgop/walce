@@ -4,7 +4,7 @@
 char* arg_start(char* line);
 char* arg_next_sep(char sep);
 char* arg_next(void);
-char* arg_until(char* stop);
+char* arg_until(const char* stop);
 char* arg_rest(void);
 
 #endif

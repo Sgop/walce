@@ -9,7 +9,7 @@ typedef uint32_t pkey32_t;
 
 typedef struct {
     pkey32_t key;    // 32 bit
-    move_t move;     // 16 bit
+    Move move;     // 16 bit
     uint8_t bound;   //  8 bit
     uint8_t age;     //  8 bit
     int16_t value;   // 16 bit
@@ -24,7 +24,7 @@ void tables_exit();
 
 
 void TT_store(
-        pkey_t key, int16_t value, uint8_t bound, int16_t depth, move_t move,
+        pkey_t key, int16_t value, uint8_t bound, int16_t depth, Move move,
         int16_t sValue);
 tentry_t* TT_probe(pkey_t key);
 void TT_advance();

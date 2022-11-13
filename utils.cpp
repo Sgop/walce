@@ -44,7 +44,7 @@ char* arg_start(char* line)
     return arg_next();
 }
 
-char* arg_until(char* stop)
+char* arg_until(const char* stop)
 {
     char* temp;
     char* line = next;

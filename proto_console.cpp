@@ -12,7 +12,7 @@
 #include "tcontrol.h"
 
 static int Depth = 0;
-static color_t Color = C_WHITE;
+static Color Color = White;
 static char Str[1024];
 
 static void info_depth(int depth)
@@ -29,10 +29,10 @@ static void info_done()
     }
 }
 
-static void info_pv(int score, move_t* pv)
+static void info_pv(int score, Move* pv)
 {
     char* pos = Str;
-    move_t* move;
+    Move* move;
     int ms = TC_get_time();
     
     pos += sprintf(pos, "%2u  %7d  %10.3f  %8d  ",
@@ -168,7 +168,7 @@ void loop_console(const char* fen)
         else if (!strcmp(token, "++"))
         {
             char* depth = arg_next();
-            move_t move;
+            Move move;
             
             if (depth)
                 TC.l_depth = atoi(depth);
@@ -191,7 +191,7 @@ void loop_console(const char* fen)
                 
             while (n > 0)
             {
-                move_t move = think(pos);
+                Move move = think(pos);
                 if (move)
                 {
                     log_line("engine move %s", move_format(move));
@@ -220,7 +220,7 @@ void loop_console(const char* fen)
             else if (!strcmp(what, "see"))
             {
                 char* m = arg_next();
-                move_t move = m ? parse_move(pos, m) : MOVE_NONE;
+                Move move = m ? parse_move(pos, m) : MOVE_NONE;
                 if (!move)
                     send_line("Invalid move: %s", m);
                 else 
@@ -257,12 +257,12 @@ void loop_console(const char* fen)
         }
         else if (!strcmp(token, "flip"))
         {
-            Color = Color == C_WHITE ? C_BLACK : C_WHITE;
+            Color = Color == White ? Black : White;
             position_print(pos, Color);
         }
         else if (strlen(token) >= 4)
         {
-            move_t move = parse_move(pos, token);
+            Move move = parse_move(pos, token);
             if (!move)
             {
                 log_line("invalid move");

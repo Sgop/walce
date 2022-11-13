@@ -17,7 +17,7 @@ enum {
 typedef struct {
     position_t* pos;
     int mode;
-    move_t pvMove;
+    Move pvMove;
     move_stack_t killers[2];
     history_t* hist;
     move_stack_t move[MAX_MOVES];
@@ -29,8 +29,8 @@ typedef struct {
 
 void move_pick_init(
         move_pick_t* picker, position_t* pos, search_stack_t* ss,
-        int mode, move_t pvMove, history_t* hist);
-move_t move_pick_next(move_pick_t* picker);
+        int mode, Move pvMove, history_t* hist);
+Move move_pick_next(move_pick_t* picker);
 
 
 #endif

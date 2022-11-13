@@ -3,7 +3,7 @@
 
 void move_pick_init(
         move_pick_t* picker, position_t* pos, search_stack_t* ss,
-        int mode, move_t pvMove, history_t* hist)
+        int mode, Move pvMove, history_t* hist)
 {
     picker->mode = mode;
     picker->hist = hist;
@@ -35,13 +35,13 @@ static void move_pick_score_capture(move_pick_t* picker)
 
     for (cur = picker->move; cur != picker->last; cur++)
     {
-        move_t move = cur->move;
+        Move move = cur->move;
         cur->score =
-            PieceValue[pos->board[MOVE_TO(move)]][PHASE_MG] -
-            PieceValue[pos->board[MOVE_FROM(move)]][PHASE_MG];
+            PieceValue[pos->board[to_sq(move)]][PHASE_MG] -
+            PieceValue[pos->board[from_sq(move)]][PHASE_MG];
 
-        if (MOVE_TYPE(move) == M_PROMOTION)
-            cur->score += PieceValue[MOVE_PROM(move)][PHASE_MG];
+        if (type_of(move) == Promotion)
+            cur->score += PieceValue[promotionPiece(move)][PHASE_MG];
     }
 }
 
@@ -52,9 +52,9 @@ static void move_pick_score_noncapture(move_pick_t* picker)
 
     for (cur = picker->move; cur != picker->last; cur++)
     {
-        move_t move = cur->move;
+        Move move = cur->move;
         cur->score = history_value(picker->hist, pos->to_move,
-                pos->board[MOVE_FROM(move)], MOVE_TO(move));
+                pos->board[from_sq(move)], to_sq(move));
     }
 }
 
@@ -68,17 +68,17 @@ static void move_pick_score_evasion(move_pick_t* picker)
 
     for (cur = picker->move; cur != picker->last; cur++)
     {
-        move_t move = cur->move;
+        Move move = cur->move;
         int see = position_see_sign(pos, move);
         if (see < 0)
             cur->score = see - HIST_MAX_VAL;
         else if (position_is_cap(pos, move))
             cur->score =
-                PieceValue[pos->board[MOVE_TO(move)]][PHASE_MG] -
-                PieceValue[pos->board[MOVE_FROM(move)]][PHASE_MG] + HIST_MAX_VAL;
+                PieceValue[pos->board[to_sq(move)]][PHASE_MG] -
+                PieceValue[pos->board[from_sq(move)]][PHASE_MG] + HIST_MAX_VAL;
         else
             cur->score = history_value(picker->hist, pos->to_move,
-                    pos->board[MOVE_FROM(move)], MOVE_TO(move));
+                    pos->board[from_sq(move)], to_sq(move));
     }
 }
 
@@ -142,9 +142,9 @@ static void move_pick_advance(move_pick_t* picker)
     }
 }
 
-move_t move_pick_next(move_pick_t* picker)
+Move move_pick_next(move_pick_t* picker)
 {
-    move_t move;
+    Move move;
 
     while (1)
     {
@@ -194,10 +194,10 @@ move_t move_pick_next(move_pick_t* picker)
             if (move != picker->pvMove)
                 return move;
         case MP_STOP:
-            return 0;
+            return MOVE_NONE;
         default:
             ASSERT_IF_FAIL(0, "invalid path");
-            return 0;
+            return MOVE_NONE;
         }
     }
 }

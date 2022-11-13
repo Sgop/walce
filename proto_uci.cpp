@@ -17,11 +17,11 @@ static void info_depth(int depth)
     Depth = depth;
 }
 
-static void info_pv(int score, move_t* pv)
+static void info_pv(int score, Move* pv)
 {
     char str[1024];
     char* pos = str;
-    move_t* move;
+    Move* move;
     int ms = TC_get_time();
     uint64_t nodes = stats_get(ST_NODE);
     
@@ -31,24 +31,24 @@ static void info_pv(int score, move_t* pv)
     }
 
     send_line("info depth %d score cp %d time %d nodes %lld nps %lld pv%s",
-              Depth, score * 100 / PieceValue[P_PAWN][PHASE_MG], ms,
+              Depth, score * 100 / PieceValue[Pawn][PHASE_MG], ms,
               nodes, ms > 0 ? nodes * 1000 / ms : nodes, str);
 }
 
-static void info_curmove(move_t move, int num)
+static void info_curmove(Move move, int num)
 {
     if (TC_get_time() > 3000)
         send_line("info currmove %s currmovenumber %d", move_format(move), num);
 }
  
-static void search_done(position_t* pos, move_t move)
+static void search_done(position_t* pos, Move move)
 {
     log_line("search_done");
     //FIXME: enter critical section
     if (!0)
     {
         position_move(pos, move);
-        position_print(pos, C_WHITE);
+        position_print(pos, White);
         log_line("bestmove %s", move_format(move));
         send_line("bestmove %s", move_format(move));
     }
@@ -127,7 +127,7 @@ void loop_uci()
             {
                 while ((token = arg_next()) != NULL)
                 {
-                    move_t move = parse_move(pos, token);
+                    Move move = parse_move(pos, token);
                     if (!move)
                     {
                         log_error("invalid move: %s", token);
@@ -158,28 +158,28 @@ void loop_uci()
                     
                 if (!strcmp(token, "wtime"))
                 {
-                    if (pos->to_move == C_WHITE)
+                    if (pos->to_move == White)
                         TC.ctime[0] = atoi(val);
                     else
                         TC.otime[0] = atoi(val);
                 }
                 else if (!strcmp(token, "winc"))
                 {
-                    if (pos->to_move == C_WHITE)
+                    if (pos->to_move == White)
                         TC.ctime[1] = atoi(val);
                     else
                         TC.otime[1] = atoi(val);
                 }
                 else if (!strcmp(token, "btime"))
                 {
-                    if (pos->to_move == C_BLACK)
+                    if (pos->to_move == Black)
                         TC.ctime[0] = atoi(val);
                     else
                         TC.otime[0] = atoi(val);
                 }
                 if (!strcmp(token, "binc"))
                 {
-                    if (pos->to_move == C_BLACK)
+                    if (pos->to_move == Black)
                         TC.ctime[1] = atoi(val);
                     else
                         TC.otime[1] = atoi(val);

@@ -22,7 +22,7 @@ static ttable_t* TT = NULL;
 
 static ttable_t* ttable_new()
 {
-    ttable_t* tt = malloc(sizeof(ttable_t));
+    ttable_t* tt = (ttable_t*)malloc(sizeof(ttable_t));
     tt->entries = NULL;
     tt->size = 0;
     tt->age = 0;
@@ -60,7 +60,7 @@ static int ttable_set_size(ttable_t* tt, size_t mb)
     tt->size = newSize;
     if (tt->entries)
         free(tt->entries);
-    tt->entries = malloc(tt->size * sizeof(tcluster_t));
+    tt->entries = (tcluster_t*)malloc(tt->size * sizeof(tcluster_t));
 
     if (!tt->entries)
         return 0;
@@ -74,7 +74,7 @@ static tentry_t* ttable_find(ttable_t* tt, pkey_t key)
     return tt->entries[(pkey32_t)key & (tt->size - 1)].data;
 }
 
-void TT_store(pkey_t key, int16_t value, uint8_t bound, int16_t depth, move_t move,
+void TT_store(pkey_t key, int16_t value, uint8_t bound, int16_t depth, Move move,
         int16_t sValue)
 {
     tentry_t* tte;

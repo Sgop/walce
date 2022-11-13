@@ -4,10 +4,9 @@
 #include "position.h"
 
 typedef struct {
-    move_t move;
-    int score;
+  Move move;
+  int score;
 } move_stack_t;
-
 
 //move_stack_t* move_generate(position_t* pos, move_stack_t* move, int type);
 move_stack_t* move_generate_legal(position_t* pos, move_stack_t* move);
