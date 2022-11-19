@@ -799,7 +799,6 @@ Move search_do(position_t* pos)
         if (!TC_have_more_time())
             break;
     }
-    log_line("info_done");
     IF.info_done();
 
     return RootMove->move;
