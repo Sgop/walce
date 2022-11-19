@@ -291,7 +291,7 @@ void bitboards_init(void)
     Direction stepKnight[] = { 
       DELTA_N + DELTA_NE, DELTA_N + DELTA_NW,
       DELTA_E + DELTA_NE, DELTA_E + DELTA_SE,
-      DELTA_W + DELTA_NW, DELTA_W + DELTA_NE,
+      DELTA_W + DELTA_NW, DELTA_W + DELTA_SW,
       DELTA_S + DELTA_SE, DELTA_S + DELTA_SW, DELTA_NONE };
     Direction stepKing[] = {
       DELTA_NE, DELTA_NW, DELTA_SE, DELTA_SW,

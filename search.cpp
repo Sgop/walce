@@ -866,11 +866,15 @@ uint64_t divide(position_t* pos, int depth)
 
     for (cur = moves; cur != last; cur++)
     {
+      uint64_t num = 1;
+      if (depth > 1)
+      {
         position_move(pos, cur->move);
-        uint64_t num = perft(pos, depth-1);
+        num = depth == 1 ? 1 : perft(pos, depth - 1);
         position_unmove(pos);
-        result += num;
-        log_line("%s %llu", move_format(cur->move), num);
+      }
+      result += num;
+      log_line("%s %llu", move_format(cur->move), num);
     }
     log_line("Moves: %u", (last-moves));
     return result;
