@@ -314,13 +314,13 @@ void bitboards_init(void)
         if (VALID_STEP(i1, to))
           B_BPawnAttacks[i1] |= BB(to);
       }
-      for (int s = 0; stepBPawn[s] != DELTA_NONE; ++s)
+      for (int s = 0; stepKing[s] != DELTA_NONE; ++s)
       {
         Square to = i1 + stepKing[s];
         if (VALID_STEP(i1, to))
           B_KingAttacks[i1] |= BB(to);
       }
-      for (int s = 0; stepBPawn[s] != DELTA_NONE; ++s)
+      for (int s = 0; stepKnight[s] != DELTA_NONE; ++s)
       {
         Square to = i1 + stepKnight[s];
         if (VALID_STEP(i1, to))

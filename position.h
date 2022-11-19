@@ -70,7 +70,7 @@ int position_unmove(position_t* pos);
 
 
 // some functions to get status
-int position_king_square(position_t* pos, Color color);
+Square position_king_square(position_t* pos, Color color);
 bitboard_t position_rook_pieces(position_t* pos, Color color);
 bitboard_t position_bishop_pieces(position_t* pos, Color color);
 bitboard_t position_pinned(position_t* pos);

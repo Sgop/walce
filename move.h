@@ -8,6 +8,18 @@ typedef struct {
   int score;
 } move_stack_t;
 
+enum GenType {
+  CAPTURE,
+  QUIET,
+  QUIET_CHECK,
+  EVASION,
+  NON_EVASION,
+  LEGAL,
+};
+
+//template<GenType>
+//move_stack_t* generate(const position_t& pos, move_stack_t* moveList);
+
 //move_stack_t* move_generate(position_t* pos, move_stack_t* move, int type);
 move_stack_t* move_generate_legal(position_t* pos, move_stack_t* move);
 move_stack_t* move_generate_capture(position_t* pos, move_stack_t* move);

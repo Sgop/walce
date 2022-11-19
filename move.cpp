@@ -4,17 +4,9 @@
 #include "bitboard.h"
 #include "stats.h"
 
-enum {
-  M_CAPTURE,
-  M_QUIET,
-  M_QUIET_CHECK,
-  M_EVASION,
-  M_NON_EVASION,
-  M_LEGAL,
-};
 
 
-static int Type = M_NON_EVASION;
+static GenType Type = NON_EVASION;
 static Color Cur;
 static bitboard_t AllPieces;
 static bitboard_t Target;
@@ -203,7 +195,7 @@ static move_stack_t* move_generate_knight(position_t* pos, move_stack_t* move)
 
   while (pieces)
   {
-    int from;
+    Square from;
     PLSB(from, pieces);
     bitboard_t attacks = B_KnightAttacks[from] & Target;
     MAKE_STANDARD_MOVES(attacks, from);
@@ -405,7 +397,7 @@ static move_stack_t* move_generate_pawn_capture(position_t* board, move_stack_t*
 move_stack_t* move_generate_quiet(position_t* pos, move_stack_t* move)
 {
   Moves = move;
-  Type = M_QUIET;
+  Type = QUIET;
   Cur = pos->to_move;
   AllPieces = pos->color[White] | pos->color[Black];
   Target = ~AllPieces;
@@ -425,7 +417,7 @@ move_stack_t* move_generate_quiet(position_t* pos, move_stack_t* move)
 move_stack_t* move_generate_capture(position_t* pos, move_stack_t* move)
 {
   Moves = move;
-  Type = M_CAPTURE;
+  Type = CAPTURE;
   Cur = pos->to_move;
   AllPieces = pos->color[White] | pos->color[Black];
   Target = pos->color[1 ^ Cur];
@@ -444,7 +436,7 @@ move_stack_t* move_generate_capture(position_t* pos, move_stack_t* move)
 move_stack_t* move_generate_non_evasion(position_t* pos, move_stack_t* move)
 {
   Moves = move;
-  Type = M_NON_EVASION;
+  Type = NON_EVASION;
   Cur = pos->to_move;
   AllPieces = pos->color[White] | pos->color[Black];
   Target = ~pos->color[Cur];
@@ -475,7 +467,7 @@ move_stack_t* move_generate_evasion(position_t* pos, move_stack_t* move)
   ASSERT_IF_FAIL(checkers, "checkers expected");
 
   Moves = move;
-  Type = M_EVASION;
+  Type = EVASION;
   Cur = pos->to_move;
   AllPieces = pos->color[Cur] | pos->color[1 ^ Cur];
 
@@ -580,7 +572,7 @@ move_stack_t* move_generate_quiet_check(position_t* pos, move_stack_t* move)
 move_stack_t* move_generate_legal(position_t* pos, move_stack_t* move)
 {
   move_stack_t* result;
-  int kingSquare = position_king_square(pos, pos->to_move);
+  Square kingSquare = position_king_square(pos, pos->to_move);
 
   if (position_in_check(pos))
     result = move_generate_evasion(pos, move);
@@ -603,3 +595,8 @@ move_stack_t* move_generate_legal(position_t* pos, move_stack_t* move)
   return result;
 }
 
+//template<GenType>
+//move_stack_t* generate(const position_t& pos, move_stack_t* moveList)
+//{
+//  return nullptr;
+//}

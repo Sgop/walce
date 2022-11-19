@@ -890,7 +890,7 @@ int position_unmove(position_t* pos)
 }
 
 
-int position_king_square(position_t* pos, Color color)
+Square position_king_square(position_t* pos, Color color)
 {
 #if USE_PIECE_LIST
   return pos->piece[color][King][0];

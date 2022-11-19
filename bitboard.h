@@ -74,16 +74,16 @@ int popcount(bitboard_t b);
 
 //return BSFTable[bsf_index(b)];
 #ifdef _WIN32
-inline int lsb(bitboard_t b) {
+inline Square lsb(bitboard_t b) {
   unsigned long idx;
 
   if (b & 0xffffffff) {
     _BitScanForward(&idx, (int32_t)b);
-    return (int)(idx);
+    return (Square)(idx);
   }
   else {
     _BitScanForward(&idx, (int32_t)(b >> 32));
-    return (int)(idx + 32);
+    return (Square)(idx + 32);
   }
 }
 #endif
