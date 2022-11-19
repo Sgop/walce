@@ -327,8 +327,8 @@ static move_stack_t* move_generate_pawn_quiet(position_t* board, move_stack_t* m
     bitboard_t b1 = (Cur == White ? pawnsNotOn7 << 8 : pawnsNotOn7 >> 8) & emptySquares;
     bitboard_t b2 = (Cur == White ? (b1 & B_Rank3) << 8 : (b1 & B_Rank6) >> 8) & emptySquares;
 
-    MAKE_PAWN_MOVES(b2, up + up);
     MAKE_PAWN_MOVES(b1, up);
+    MAKE_PAWN_MOVES(b2, up + up);
   }
 
   return move;

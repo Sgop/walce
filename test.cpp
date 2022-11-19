@@ -35,6 +35,7 @@ static char* strip(char* str)
 
 static void test_start(const char* desc)
 {
+  printf("\n");
   printf("**************************************************\n");
   printf(" Test case: %s\n", desc);
   printf("--------------------------------------------------\n");
