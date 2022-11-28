@@ -11,6 +11,8 @@
 #include "eval.h"
 #include "tcontrol.h"
 
+using namespace walce;
+
 static int Depth = 0;
 static Color Us = White;
 static char Str[1024];
@@ -33,7 +35,7 @@ static void info_pv(int score, Move* pv)
 {
   char* pos = Str;
   Move* move;
-  int ms = TC_get_time();
+  auto ms = TC.elapsed().count();
 
   pos += sprintf(pos, "%2u  %7d  %10.3f  %8d  ",
     Depth, score, (double)ms / 1000, stats_get(ST_NODE));
@@ -65,7 +67,7 @@ void loop_console(const char* fen)
     position_set(pos, fen);
   position_print(pos, Us);
 
-  TC.l_time = 1000;
+  TC.setMoveTime(std::chrono::milliseconds(1000));
 
   while (1)
   {
@@ -142,9 +144,9 @@ void loop_console(const char* fen)
       }
       else
       {
-        TC_start();
+        TC.start();
         uint64_t nodes = perft(pos, atoi(depth));
-        int ms = TC_get_time() + 1;
+        auto ms = TC.elapsed().count() + 1;
         log_line("Perft: %lld nodes (%.3f seconds, %llu/ms)",
           nodes, (double)ms / 1000.0, nodes / ms);
       }
@@ -158,9 +160,9 @@ void loop_console(const char* fen)
       }
       else
       {
-        TC_start();
+        TC.start();
         uint64_t nodes = divide(pos, atoi(depth));
-        int ms = TC_get_time() + 1;
+        auto ms = TC.elapsed().count() + 1;
         log_line("Divide: %lld nodes (%.3f seconds, %llu/ms)",
           nodes, (double)ms / 1000.0, nodes / ms);
       }
@@ -171,9 +173,9 @@ void loop_console(const char* fen)
       Move move;
 
       if (depth)
-        TC.l_depth = atoi(depth);
+        TC.setMoveDepth(std::atoi(depth));
       else
-        TC.l_depth = 0;
+        TC.setMoveDepth(0);
 
       move = think(pos);
       log_line("best %s", move_format(move));
@@ -241,7 +243,7 @@ void loop_console(const char* fen)
       if (!d)
         log_error("missing argument");
       else
-        TC.l_depth = atoi(d);
+        TC.setMoveDepth(atoi(d));
     }
     else if (!strcmp(token, "time"))
     {
@@ -249,7 +251,7 @@ void loop_console(const char* fen)
       if (!t)
         log_error("missing argument");
       else
-        TC.l_time = atoi(t);
+        TC.setMoveTime(std::chrono::milliseconds(atoi(t)));
     }
     else if (!strcmp(token, "ttclear"))
     {
@@ -257,8 +259,7 @@ void loop_console(const char* fen)
     }
     else if (!strcmp(token, "flip"))
     {
-      Us = Us == White ? Black : White;
-      position_print(pos, Us);
+      position_print(pos, Us = ~Us);
     }
     else if (strlen(token) >= 4)
     {

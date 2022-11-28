@@ -4,6 +4,8 @@
 #include "search.h"
 #include "tcontrol.h"
 
+using namespace walce;
+
 #ifdef _WIN32
 typedef HANDLE mutex_t;
 #else
@@ -108,13 +110,13 @@ void threads_exit()
 
 void threads_search()
 {
-  TC.stop = 0;
+  TC.start();
   search_wakeup();
 }
 
 void threads_search_stop()
 {
-  TC.stop = 1;
+  TC.stop();
 #ifdef _WIN32
   WaitForSingleObject(SearchThread.mutex, INFINITE);
   ReleaseMutex(SearchThread.mutex);

@@ -38,26 +38,17 @@ int main(int argc, char** argv)
   IF.info_curmove = info_curmove;
   IF.search_done = search_done;
 
-  TC_clear();
-
   while (1)
   {
-    char* line = NULL;
-    std::string token;
-    if (argc > 1)
-    {
-      token = "console";
-    }
-    else
+    char* line = nullptr;
+    char* token = nullptr;
+    if (argc < 2)
     {
       line = get_line();
       token = arg_start(line);
     }
 
-    if (token == "quit")
-    {
-    }
-    else if (token == "console")
+    if (!token || token == "console")
     {
       loop_console(argv[1]);
     }
@@ -68,6 +59,9 @@ int main(int argc, char** argv)
     else if (token  == "uci")
     {
       loop_uci();
+    }
+    else if (token == "quit")
+    {
     }
     else
     {

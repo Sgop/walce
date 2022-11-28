@@ -12,6 +12,7 @@
 #include "interface.h"
 #include "tcontrol.h"
 
+using namespace walce;
 
 static int Depth;
 
@@ -158,12 +159,12 @@ static int test_perft_correctness(const char* filename)
       continue;
     }
 
-    TC_start();
+    TC.start();
     uint64_t result = perft(position, depth);
-    int ms = TC_get_time();
+    auto ms = TC.elapsed();
     char str[100] = "";
-    if (ms > 0)
-      sprintf(str, "(%llu/ms)", result / ms);
+    if (ms.count() > 0)
+      sprintf(str, "(%llu/ms)", result / ms.count());
 
     if (result != num)
     {
@@ -187,7 +188,6 @@ static int test_perft_correctness(const char* filename)
 
 static int checkPos(const char* fen, unsigned depth)
 {
-  int ms;
   uint64_t moves;
   position_t* pos;
 
@@ -198,9 +198,9 @@ static int checkPos(const char* fen, unsigned depth)
     test_failed("invalid fen string [%s]", fen);
     return 1;
   }
-  TC_start();
+  TC.start();
   moves = perft(pos, depth);
-  ms = TC_get_time();
+  auto ms = TC.elapsed().count();
   test_ok("depth %d: %lld moves (%.3f seconds, %llu/ms)",
     depth, moves, (double)ms / 1000.0, moves / ms);
 
@@ -224,7 +224,6 @@ static int test_perft_performance()
 
 static int checkSearch(const char* fen)
 {
-  int ms;
   position_t* pos;
   Move move;
 
@@ -236,12 +235,12 @@ static int checkSearch(const char* fen)
   }
 
   TT_clear();
-  TC_clear();
-  TC.l_time = 1000;
+  TC.reset();
+  TC.setMoveTime(std::chrono::seconds(1));
+  TC.start();
 
-  TC_start();
   move = search_do(pos);
-  ms = TC_get_time();
+  auto ms = TC.elapsed().count();
 
   test_ok("depth %d: %s (%.3f seconds, %d nodes, %d/ms)", Depth, move_format(move),
     (double)ms / 1000.0, stats_get(ST_NODE), stats_get(ST_NODE) / ms);

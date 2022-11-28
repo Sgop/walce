@@ -1,88 +1,118 @@
-#include <string.h>
 #include "tcontrol.h"
-#include "stats.h"
 
-#ifdef _WIN32
+namespace walce {
 
-int gettimeofday(struct timeval* tp, struct timezone* tzp)
-{
-  // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
-  // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
-  // until 00:00:00 January 1, 1970 
-  static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+  TimeControl TC;
 
-  SYSTEMTIME  system_time;
-  FILETIME    file_time;
-  uint64_t    time;
+  TimeControl::TimeControl()
+    : _playerTimes()
+    , _moveTime()
+    , _moveDepth(0)
+    , _moveNodes(0)
+    , _infinite(false)
+    , _start()
+    , _started(false)
+  {}
 
-  GetSystemTime(&system_time);
-  SystemTimeToFileTime(&system_time, &file_time);
-  time = ((uint64_t)file_time.dwLowDateTime);
-  time += ((uint64_t)file_time.dwHighDateTime) << 32;
+  void TimeControl::setTime(Color color, std::chrono::milliseconds t)
+  {
+    _playerTimes[color][0] = t;
+  }
 
-  tp->tv_sec = (long)((time - EPOCH) / 10000000L);
-  tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
-  return 0;
+  void TimeControl::setIncTime(Color color, std::chrono::milliseconds t)
+  {
+    _playerTimes[color][1] = t;
+  }
+
+  void TimeControl::reset()
+  {
+    _moveTime = std::chrono::milliseconds(0);
+    _moveDepth = 0;
+    _moveNodes = 0;
+    _infinite = false;
+  }
+
+  void TimeControl::start()
+  {
+    std::chrono::high_resolution_clock t;
+    _start = t.now();
+    _started = true;
+  }
+
+  void TimeControl::stop()
+  {
+    _started = false;
+  }
+
+  std::chrono::milliseconds TimeControl::elapsed() const
+  {
+    std::chrono::high_resolution_clock t;
+    return std::chrono::duration_cast<std::chrono::milliseconds>(t.now() - _start);
+  }
+
+  bool TimeControl::active() const
+  {
+    return _started;
+  }
+
+  int TimeControl::getMaxPly() const
+  {
+    return _moveDepth == 0 || _moveDepth > MAX_PLY ? MAX_PLY : _moveDepth;
+
+  }
+
+  bool TimeControl::haveMoreTime() const
+  {
+    if (_infinite)
+      return true;
+
+    auto e = elapsed();
+
+    //    if (TC.l_nodes > 0)
+    //        return stats_get(ST_NODE) >= TC.l_nodes;
+
+    if (_moveTime.count() > 0)
+      return e < _moveTime;
+
+    if (_playerTimes[White][0].count() <= 1)
+      return e.count() < 1000;
+    else if (TC._playerTimes[White][0].count() <= 10000)
+      return e.count() < 100;
+    else
+      return (e - TC._playerTimes[White][1] / 5) * 10 < TC._playerTimes[White][0];
+  }
+
+  void TimeControl::setMoveTime(std::chrono::milliseconds t)
+  {
+    _moveTime = t;
+  }
+
+  void TimeControl::setMoveDepth(unsigned d)
+  {
+    _moveDepth = d;
+  }
+
+  void TimeControl::setMoveNodes(unsigned nodes)
+  {
+    _moveNodes = nodes;
+  }
+  
+  void TimeControl::setInfinite(bool val)
+  {
+    _infinite = val;
+  }
+
+  std::string TimeControl::printThink() const
+  {
+    char str[1024];
+
+    sprintf(str, "Thinking %s(depth: %d)(time: %lld ms)(node: %d)(time: %.1f/%.1f s)",
+      _infinite ? "infinite " : "", _moveDepth, _moveTime.count(), _moveNodes,
+      _playerTimes[White][0].count() / 1000.0,
+      _playerTimes[White][1].count() / 1000.0);
+    return str;
+  }
+
+
 }
-
-
-#endif
-
-tcontrol_t TC;
-
-void timer_start(ctimer_t* timer)
-{
-  gettimeofday(&timer->start, NULL);
-}
-
-int timer_get(ctimer_t* timer)
-{
-  unsigned ms = 0;
-  unsigned s = 0;
-  struct timeval now;
-
-  gettimeofday(&now, NULL);
-  s = now.tv_sec - timer->start.tv_sec;
-  ms = (now.tv_usec - timer->start.tv_usec) / 1000;
-  return s * 1000 + ms;
-}
-
-
-void TC_clear(void)
-{
-  memset(&TC, 0, sizeof(TC));
-}
-
-void TC_start(void)
-{
-  TC.stop = 0;
-  timer_start(&TC.timer);
-}
-
-int TC_get_time(void)
-{
-  return timer_get(&TC.timer);
-}
-
-int TC_have_more_time()
-{
-  int elapsed = TC_get_time();
-
-  if (TC.infinite)
-    return 1;
-
-  //    if (TC.l_nodes > 0)
-  //        return stats_get(ST_NODE) >= TC.l_nodes;
-
-  if (TC.l_time > 0)
-    return elapsed < TC.l_time;
-
-  if (TC.ctime[0] <= 1)
-    return elapsed < 1000;
-  else if (TC.ctime[0] <= 10000)
-    return elapsed < 100;
-  else
-    return (elapsed - TC.ctime[1] / 5) * 45 < TC.ctime[0];
-}
-
 

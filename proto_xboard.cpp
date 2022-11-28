@@ -11,6 +11,8 @@
 #include "tcontrol.h"
 #include "thread.h"
 
+using namespace walce;
+
 static int ModePost = 0;
 static int ModeAnalyze = 0;
 static int InGame = 0;
@@ -26,12 +28,12 @@ static void info_pv(int score, Move* pv)
   char str[1024];
   char* pos = str;
   Move* move;
-  int ms = TC_get_time();
+  auto ms = TC.elapsed().count();
 
   if (!ModePost)
     return;
 
-  pos += sprintf(pos, "%2u  %7d  %5d  %8d  ", Depth,
+  pos += sprintf(pos, "%2d  %7d  %5lld  %8d  ", Depth,
     score * 100 / PieceValue[Pawn][PHASE_MG], ms / 10, stats_get(ST_NODE));
 
   for (move = pv; *move != MOVE_NONE; move++)
@@ -46,7 +48,7 @@ static void info_pv(int score, Move* pv)
 
 static void info_curmove(Move move, int num)
 {
-  if (TC_get_time() > 3000)
+  if (TC.elapsed() > std::chrono::milliseconds(3000))
     log_line("%2d. %s", num, move_format(move));
 }
 
@@ -140,7 +142,7 @@ void loop_xboard(void)
     {
       token = arg_next();
       if (token)
-        TC.l_time = atoi(token) * 1000;
+        TC.setMoveTime(std::chrono::seconds(atoi(token)));
     }
     else if (!strcmp(token, "level"))
     {
@@ -156,27 +158,29 @@ void loop_xboard(void)
       {
         int t = atoi(min) * 60 + (sec ? atoi(sec) : 0);
 
-        TC.togo = atoi(moves);
-        TC.ctime[0] = TC.otime[0] = t * 1000;
-        TC.ctime[1] = TC.otime[1] = atoi(inc) * 1000;
+        //FIXME TC.togo = atoi(moves);
+        TC.setTime(White, std::chrono::seconds(t));
+        TC.setTime(Black, std::chrono::seconds(t));
+        TC.setIncTime(White, std::chrono::seconds(atoi(inc)));
+        TC.setIncTime(Black, std::chrono::seconds(atoi(inc)));
       }
     }
     else if (!strcmp(token, "time"))
     {
       token = arg_next();
       if (token)
-        TC.ctime[0] = atoi(token) * 10;
+        TC.setTime(White, std::chrono::milliseconds(atoi(token) * 10));
     }
     else if (!strcmp(token, "otim"))
     {
       token = arg_next();
       if (token)
-        TC.otime[0] = atoi(token) * 10;
+        TC.setTime(Black, std::chrono::milliseconds(atoi(token) * 10));
     }
     else if (!strcmp(token, "analyze"))
     {
       ModeAnalyze = 1;
-      TC.infinite = 1;
+      TC.setInfinite(true);
       engineColor = pos->to_move;
 
       threads_search();
@@ -185,7 +189,7 @@ void loop_xboard(void)
     {
       threads_search_stop();
       ModeAnalyze = 0;
-      TC.infinite = 0;
+      TC.setInfinite(false);
     }
     else if (ModeAnalyze && !strcmp(token, "."))
     {
@@ -223,7 +227,7 @@ void loop_xboard(void)
     {
       char* d = arg_next();
       if (d)
-        TC.l_depth = atoi(d);
+        TC.setMoveDepth(atoi(d));
     }
     else if (!strcmp(token, "ping"))
     {
@@ -272,12 +276,12 @@ void loop_xboard(void)
       else if (!strcmp(o, "Thinking Time"))
       {
         if (v)
-          TC.l_time = atoi(v);
+          TC.setMoveTime(std::chrono::milliseconds(atoi(v)));
       }
       else if (!strcmp(o, "Search Depth"))
       {
         if (v)
-          TC.l_depth = atoi(v);
+          TC.setMoveDepth(atoi(v));
       }
       else
         log_line("unknown option: %s", o);
