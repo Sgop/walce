@@ -826,9 +826,6 @@ int position_unmove(position_t* pos)
   bitboard_t bft = BB(from) ^ BB(to);
   PieceType piece = pos->board[to];
   PieceType capture = pos->state->captured;
-#if USE_PIECE_LIST
-  int s;
-#endif
 
   //move_print(move, "undo move ");
 

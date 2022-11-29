@@ -1,145 +1,83 @@
 #include "thread.h"
-#include "types.h"
+#include "position.h"
 #include "interface.h"
 #include "search.h"
-#include "tcontrol.h"
 
-using namespace walce;
+void IO_enter() {}
+void IO_leave() {}
 
-#ifdef _WIN32
-typedef HANDLE mutex_t;
-#else
-typedef pthread_mutex_t mutex_t;
-#endif
+#include <thread>
+#include <assert.h>
 
-#ifdef _WIN32
-typedef CONDITION_VARIABLE cond_t;
-#else
-typedef pthread_cond_t cond_t;
-#endif
-
-#ifdef _WIN32
-typedef HANDLE handle_t;
-#else
-typedef pthread_t handle_t;
-#endif
-
-typedef struct {
-  handle_t handle;
-  cond_t cond;
-#ifdef _WIN32
-  CRITICAL_SECTION critCond;
-#endif
-  mutex_t mutex;
-  int searching;
-  int exit;
-} thread_t;
-
-static thread_t SearchThread;
-static position_t* Position;
-static mutex_t IOMutex;
-
-static
-#ifdef  _WIN32
-DWORD WINAPI
-#else
-void*
-#endif
-search_main(void* arg)
+namespace walce
 {
-  thread_t* thread = (thread_t*)arg;
-  Move move;
+  SearchThread Searcher;
 
-  thread->exit = 0;
-  thread->searching = 0;
-
-  while (1)
+  Thread::Thread()
+    : _thread(&Thread::mainLoop, this)
+    , _mutex()
+    , _condition()
   {
-#ifdef _WIN32
-    SleepConditionVariableCS(&thread->cond, &thread->critCond, INFINITE);
-#else
-    pthread_cond_wait(&thread->cond, &thread->mutex);
-#endif
-    if (thread->exit)
-      break;
-    thread->searching = 1;
-    move = think(Position);
-    IF.search_done(Position, move);
-    thread->searching = 0;
   }
-#ifdef  _WIN32
-  return 0;
-#else
-  return NULL;
-#endif
-}
 
-static void search_wakeup()
-{
-#ifdef _WIN32
-  WakeConditionVariable(&SearchThread.cond);
-#else
-  pthread_cond_signal(&SearchThread.cond);
-#endif
-}
+  Thread::~Thread()
+  {
+    assert(!_running);
+    // wake up to leave idle loop
+    _exit = true;
+    wakeUp();
+    _thread.join();
+  }
 
-void threads_init(position_t* pos)
-{
-  Position = pos;
-#ifdef _WIN32
-  SearchThread.mutex = CreateMutex(NULL, FALSE, NULL);
-  InitializeConditionVariable(&SearchThread.cond);
-  InitializeCriticalSection(&SearchThread.critCond);
-  DWORD uiThredId;
-  SearchThread.handle = CreateThread(0, 0, search_main, &SearchThread, 0, &uiThredId);
-  IOMutex = CreateMutex(NULL, FALSE, NULL);
-#else
-  pthread_mutex_init(&SearchThread.mutex, NULL);
-  pthread_cond_init(&SearchThread.cond, NULL);
-  pthread_create(&SearchThread.handle, NULL, search_main, &SearchThread);
-  pthread_mutex_init(&IOMutex, NULL);
-#endif
-}
+  void Thread::mainLoop()
+  {
+    while (true)
+    {
+      std::unique_lock<std::mutex> lock(_mutex);
+      _running = false;
+      _condition.notify_one();
+      _condition.wait(lock, [&] { return _running; });
 
-void threads_exit()
-{
-  SearchThread.exit = 1;
-  search_wakeup();
-  //pthread_join(SearchThread.handle, NULL);
-}
+      if (_exit)
+        return;
 
-void threads_search()
-{
-  TC.start();
-  search_wakeup();
-}
+      lock.unlock();
 
-void threads_search_stop()
-{
-  TC.stop();
-#ifdef _WIN32
-  WaitForSingleObject(SearchThread.mutex, INFINITE);
-  ReleaseMutex(SearchThread.mutex);
-#else
-  pthread_mutex_lock(&SearchThread.mutex);
-  pthread_mutex_unlock(&SearchThread.mutex);
-#endif
-}
+      action();
+    }
+  }
 
-void IO_enter()
-{
-#ifdef _WIN32
-  WaitForSingleObject(IOMutex, INFINITE);
-#else
-  pthread_mutex_lock(&IOMutex);
-#endif
-}
+  void Thread::wakeUp()
+  {
+    std::unique_lock<std::mutex> lock(_mutex);
+    _running = true;
+    _condition.notify_one();
+  }
 
-void IO_leave()
-{
-#ifdef _WIN32
-  ReleaseMutex(IOMutex);
-#else
-  pthread_mutex_unlock(&IOMutex);
-#endif
+  void Thread::wait()
+  {
+    std::unique_lock<std::mutex> lock(_mutex);
+    _condition.wait(lock, [&] { return !_running; });
+  }
+
+
+  SearchThread::SearchThread()
+    : Thread()
+    , _pos(nullptr)
+  {
+  }
+  
+  void SearchThread::searchPosition(position_t* pos)
+  {
+    assert(!_running);
+    _pos = pos;
+    wakeUp();
+  }
+
+  void SearchThread::action()
+  {
+    Move move = think(_pos);
+    IF.search_done(_pos, move); //FIXME: process outside thread
+  }
+
 }

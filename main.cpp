@@ -48,19 +48,19 @@ int main(int argc, char** argv)
       token = arg_start(line);
     }
 
-    if (!token || token == "console")
+    if (!token || std::string(token) == "console")
     {
       loop_console(argv[1]);
     }
-    else if (token == "xboard")
+    else if (std::string(token) == "xboard")
     {
       loop_xboard();
     }
-    else if (token  == "uci")
+    else if (std::string(token) == "uci")
     {
       loop_uci();
     }
-    else if (token == "quit")
+    else if (std::string(token) == "quit")
     {
     }
     else

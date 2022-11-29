@@ -67,11 +67,11 @@ void loop_uci()
 
   log_set_mode(MODE_GUI);
   log_line("uci mode");
-  send_line("id name Walce 1.0.0.1");
+  send_line("id name Walce %s", WALCE_VERSION);
   send_line("id author Markus Lausser");
   send_line("uciok");
 
-  threads_init(pos);
+  //threads_init(pos);
 
   while (1)
   {
@@ -88,7 +88,8 @@ void loop_uci()
     }
     else if (!strcmp(token, "quit"))
     {
-      threads_search_stop();
+      //threads_search_stop();
+      Searcher.stop = true;
       break;
     }
     else if (!strcmp(token, "isready"))
@@ -97,7 +98,8 @@ void loop_uci()
     }
     else if (!strcmp(token, "ucinewgame"))
     {
-      threads_search_stop();
+      //threads_search_stop();
+      Searcher.stop = true;
       TT_clear();
     }
     else if (!strcmp(token, "position"))
@@ -195,11 +197,11 @@ void loop_uci()
           TC.setMoveTime(std::chrono::milliseconds(atoi(val)));
         }
       }
-      threads_search();
+      Searcher.searchPosition(pos);
     }
     else if (!strcmp(token, "stop"))
     {
-      threads_search_stop();
+      Searcher.stop = true;
     }
     else
     {

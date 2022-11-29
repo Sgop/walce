@@ -4,6 +4,8 @@
 #include "platform.h"
 #include "debug.h"
 
+#define WALCE_VERSION "1.0.0.2"
+
 typedef uint64_t bitboard_t;
 typedef uint64_t pkey_t;
 

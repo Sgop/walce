@@ -79,7 +79,10 @@ namespace walce {
     else if (TC._playerTimes[White][0].count() <= 10000)
       return e.count() < 100;
     else
-      return (e - TC._playerTimes[White][1] / 5) * 10 < TC._playerTimes[White][0];
+    {
+      auto fac = std::max(45 - TC._playerTimes[White][1].count() / 1000, 10ll);
+      return (e - TC._playerTimes[White][1] / 5) * fac < TC._playerTimes[White][0];
+    }
   }
 
   void TimeControl::setMoveTime(std::chrono::milliseconds t)

@@ -9,10 +9,6 @@ namespace walce {
 
   class TimeControl {
   public:
-    typedef std::chrono::duration<unsigned, std::chrono::milliseconds> Duration;
-    typedef std::chrono::time_point<unsigned, std::chrono::milliseconds> Time;
-    typedef std::chrono::high_resolution_clock Timer;
-
     TimeControl();
 
     void setTime(Color color, std::chrono::milliseconds t);
@@ -48,4 +44,3 @@ namespace walce {
 }
 
 #endif
-

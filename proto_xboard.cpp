@@ -76,8 +76,6 @@ void loop_xboard(void)
   log_set_mode(MODE_GUI);
   log_line("xboard mode");
 
-  threads_init(pos);
-
   while (1)
   {
     char* line = get_line();
@@ -93,7 +91,7 @@ void loop_xboard(void)
     else if (!strcmp(token, "quit"))
     {
       InGame = 0;
-      threads_search_stop();
+      Searcher.stop = true;
       break;
     }
     else if (!strcmp(token, "protover"))
@@ -136,7 +134,7 @@ void loop_xboard(void)
     }
     else if (!strcmp(token, "?"))
     {
-      threads_search_stop();
+      Searcher.stop = true;
     }
     else if (!strcmp(token, "st"))
     {
@@ -183,11 +181,11 @@ void loop_xboard(void)
       TC.setInfinite(true);
       engineColor = pos->to_move;
 
-      threads_search();
+      Searcher.searchPosition(pos);
     }
     else if (ModeAnalyze && !strcmp(token, "exit"))
     {
-      threads_search_stop();
+      Searcher.stop = true;
       ModeAnalyze = 0;
       TC.setInfinite(false);
     }
@@ -198,7 +196,7 @@ void loop_xboard(void)
     else if (!strncmp(line, "result", 6))
     {
       InGame = 0;
-      threads_search_stop();
+      Searcher.stop = true;
     }
     else if (!strncmp(line, "force", 5))
     {
@@ -207,7 +205,7 @@ void loop_xboard(void)
     else if (!strcmp(token, "go"))
     {
       engineColor = pos->to_move;
-      threads_search();
+      Searcher.searchPosition(pos);
     }
     else if (!strcmp(token, "playother"))
     {
@@ -291,7 +289,7 @@ void loop_xboard(void)
       if (!strcmp(token, "usermove"))
         token = arg_next();
 
-      threads_search_stop();
+      Searcher.stop = true;
 
       Move move = parse_move(pos, token);
       if (!move)
@@ -303,12 +301,11 @@ void loop_xboard(void)
         position_move(pos, move);
         position_print(pos, White);
         if (ModeAnalyze || engineColor == pos->to_move)
-          threads_search();
+          Searcher.searchPosition(pos);
       }
     }
   }
 
-  threads_exit();
   position_destroy(pos);
 }
 

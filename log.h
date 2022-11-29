@@ -18,5 +18,22 @@ void log_error(const char* fmt, ...);
 void send_line(const char* fmt, ...);
 char* get_line();
 
+namespace walce
+{
+
+  class Communicate
+  {
+  public:
+    Communicate();
+  protected:
+
+  };
+
+  extern Communicate Comm;
+
+}
+
+
+
 #endif
 
